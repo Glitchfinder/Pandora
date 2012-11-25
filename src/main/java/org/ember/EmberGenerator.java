@@ -77,6 +77,7 @@ public class EmberGenerator extends ChunkGenerator
 		lastGen.synchronize(world);
 		return lastGen.canSpawn(x, z);
 	}
+
 	@Deprecated
 	public byte[] generate(World world, Random rand, int x, int z)
 	{
