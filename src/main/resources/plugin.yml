@@ -1,0 +1,5 @@
+author: Glitchfinder
+description: A world generator plugin API.
+main: org.ember.Ember
+name: Ember
+version: '1.0'
