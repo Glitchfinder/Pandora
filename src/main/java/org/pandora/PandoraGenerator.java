@@ -22,13 +22,10 @@ package org.pandora;
 	import java.util.List;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
-	import org.bukkit.block.Block;
 	import org.bukkit.generator.BlockPopulator;
 	import org.bukkit.generator.ChunkGenerator;
 	import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 	import org.bukkit.Location;
-	import org.bukkit.Material;
-	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
 //* IMPORTS: SPOUT
 	//* NOT NEEDED
@@ -225,9 +222,9 @@ public class PandoraGenerator extends ChunkGenerator
 				humidityRange = lastGen.maxHumidity - lastGen.minHumidity;
 				continue;
 			}
-			else if(tempRange < (currentGen.maxTemperature - currentGen.minTemperature))
+			else if(tempRange <= (currentGen.maxTemperature - currentGen.minTemperature))
 				continue;
-			else if(humidityRange < (currentGen.maxHumidity - currentGen.minHumidity))
+			else if(humidityRange <= (currentGen.maxHumidity - currentGen.minHumidity))
 				continue;
 
 			lastGen = currentGen;

@@ -41,7 +41,6 @@ public abstract class PandoraBiome
 	private int xs, zs;
 	private double cnoise;
 	private World world;
-	private PandoraGenerator generator;
 
 	public boolean canSpawn(int x, int z)
 	{
