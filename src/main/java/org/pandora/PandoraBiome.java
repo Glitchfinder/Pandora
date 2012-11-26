@@ -106,8 +106,6 @@ public abstract class PandoraBiome
 		return world.getHumidity(x, z);
 	}
 
-	
-
 	public void synchronize(World world)
 	{
 		if(this.world == world)

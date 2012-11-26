@@ -251,4 +251,13 @@ public class PandoraGenerator extends ChunkGenerator
 
 		result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = id;
 	}
+
+	public PandoraGenerator setDefaultBiome(PandoraBiome biome)
+	{
+		if(biome == null)
+			return this;
+
+		defaultGen = biome;
+		return this;
+	}
 }
