@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.ember;
+package org.pandora;
 
 //* IMPORTS: JDK/JRE
 	import java.lang.String;
@@ -31,7 +31,7 @@ package org.ember;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
-public abstract class EmberBiome
+public abstract class PandoraBiome
 {
 	public SimplexNoiseGenerator noise;
 	public double minTemperature, maxTemperature, minHumidity, maxHumidity;
@@ -41,7 +41,7 @@ public abstract class EmberBiome
 	private int xs, zs;
 	private double cnoise;
 	private World world;
-	private EmberGenerator generator;
+	private PandoraGenerator generator;
 
 	public boolean canSpawn(int x, int z)
 	{

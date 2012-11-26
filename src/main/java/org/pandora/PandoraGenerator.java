@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.ember;
+package org.pandora;
 
 //* IMPORTS: JDK/JRE
 	import java.util.ArrayList;
@@ -35,11 +35,11 @@ package org.ember;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
-public class EmberGenerator extends ChunkGenerator
+public class PandoraGenerator extends ChunkGenerator
 {
-	private List<EmberBiome>	generators = new ArrayList<EmberBiome>();
+	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
-	private EmberBiome lastGen, defaultGen;
+	private PandoraBiome lastGen, defaultGen;
 	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ, cXPos, cZPos, index;
 	private double temperature, humidity, tempRange, humidityRange;
 	private byte byteId;
@@ -49,7 +49,7 @@ public class EmberGenerator extends ChunkGenerator
 	private short[] extTempColumn;
 	private short[][] extTempChunk;
 
-	public EmberGenerator addBiome(EmberBiome biome)
+	public PandoraGenerator addBiome(PandoraBiome biome)
 	{
 		if(biome == null)
 			return this;
@@ -58,7 +58,7 @@ public class EmberGenerator extends ChunkGenerator
 		return this;
 	}
 
-	public EmberGenerator addPopulator(BlockPopulator populator)
+	public PandoraGenerator addPopulator(BlockPopulator populator)
 	{
 		if(populator == null)
 			return this;
@@ -184,7 +184,7 @@ public class EmberGenerator extends ChunkGenerator
 		return tempChunk;
 	}
 
-	public List<EmberBiome> getDefaultBiomes(World world)
+	public List<PandoraBiome> getDefaultBiomes(World world)
 	{
 		return generators;
 	}
@@ -208,7 +208,7 @@ public class EmberGenerator extends ChunkGenerator
 		humidity = world.getHumidity(x, z);
 		lastGen = defaultGen;
 
-		for(EmberBiome currentGen : generators)
+		for(PandoraBiome currentGen : generators)
 		{
 			if(currentGen.minTemperature > temperature)
 				continue;

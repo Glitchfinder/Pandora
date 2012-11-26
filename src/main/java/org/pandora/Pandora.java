@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.ember;
+package org.pandora;
 
 //* IMPORTS: JDK/JRE
 	//* NOT NEEDED
@@ -26,7 +26,7 @@ package org.ember;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
-public class Ember extends JavaPlugin
+public class Pandora extends JavaPlugin
 {
 	public void onDisable() {}
 	public void onEnable() {}

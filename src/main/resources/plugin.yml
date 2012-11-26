@@ -1,5 +1,5 @@
 author: Glitchfinder
 description: A world generator plugin API.
-main: org.ember.Ember
-name: Ember
+main: org.pandora.Pandora
+name: Pandora
 version: '1.0'

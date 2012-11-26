@@ -5,11 +5,11 @@
 		http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.ember</groupId>
-	<artifactId>Ember</artifactId>
+	<groupId>org.pandora</groupId>
+	<artifactId>Pandora</artifactId>
 	<version>1.0</version>
-	<name>Ember</name>
-	<url>https://github.com/Glitchfinder/Ember/</url>
+	<name>Pandora</name>
+	<url>https://github.com/Glitchfinder/Pandora/</url>
 
 	<developers>
 		<developer>
@@ -26,17 +26,17 @@
 
 	<issueManagement>
 		<system>github</system>
-		<url>https://github.com/Glitchfinder/Ember/issues/</url>
+		<url>https://github.com/Glitchfinder/Pandora/issues/</url>
 	</issueManagement>
 
 	<scm>
 		<connection>
-			scm:git:https://github.com/Glitchfinder/Ember.git
+			scm:git:https://github.com/Glitchfinder/Pandora.git
 		</connection>
 		<developerConnection>
-			scm:git:git@github.com:Glitchfinder/Ember.git
+			scm:git:git@github.com:Glitchfinder/Pandora.git
 		</developerConnection>
-		<url>https://github.com/Glitchfinder/Ember/</url>
+		<url>https://github.com/Glitchfinder/Pandora/</url>
 	</scm>
 
 	<repositories>
