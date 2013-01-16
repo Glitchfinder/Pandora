@@ -25,6 +25,7 @@ package org.pandora;
 	import org.bukkit.Chunk;
 	import org.bukkit.generator.BlockPopulator;
 	import org.bukkit.Location;
+	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
@@ -33,10 +34,13 @@ public class PandoraPopulator extends BlockPopulator
 {
 	private List<PandoraBiomePopulator> populators = new ArrayList<PandoraBiomePopulator>();
 	private PandoraBiomePopulator lastPop, defaultPop, tempPop;
+	private SimplexNoiseGenerator noise;
 	private Location center, currentEdge, tempEdge;
-	private int lastX, lastZ, xPos, zPos, currentX, currentZ, cXPos, cZPos;
-	private int edgeMax, edgeXPos, edgeZPos;
+	private int lastX, lastZ, xPos, zPos, currentX, currentZ, cXPos, cZPos, xs, zs;
+	private int edgeMax, edgeXPos, edgeZPos, octaves;
 	private double temperature, humidity, tempRange, humidityRange;
+	private double range, scale, amplitude, frequency, cnoise;
+	private boolean useCustomMetrics = false;
 
 	public PandoraPopulator addBiome(PandoraBiomePopulator biome) {
 		if(biome == null)
@@ -159,8 +163,15 @@ public class PandoraPopulator extends BlockPopulator
 		if((x == lastX && z == lastZ && lastPop != null) || world == null)
 			return;
 
-		temperature = world.getTemperature(x, z);
-		humidity = world.getHumidity(x, z);
+		if(!useCustomMetrics) {
+			temperature = world.getTemperature(x, z);
+			humidity = world.getHumidity(x, z);
+		}
+		else {
+			temperature = getBiomeNoise(world, x, z, false);
+			humidity = getBiomeNoise(world, x, z, true);
+		}
+
 		lastPop = defaultPop;
 
 		for(PandoraBiomePopulator currentPop : populators) {
@@ -195,5 +206,35 @@ public class PandoraPopulator extends BlockPopulator
 
 		defaultPop = biome;
 		return this;
+	}
+
+	public void setUseCustomBiomeMetrics(boolean setting) {
+		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 15D);
+	}
+	
+	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale, int octaves, double amplitude, double frequency) {
+		this.useCustomMetrics = setting;
+		this.range = range;
+		this.scale = scale;
+		this.octaves = octaves;
+		this.amplitude = amplitude;
+		this.frequency = (frequency / 1000D);
+	}
+
+	private double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
+		if(world == null)
+			return 0;
+
+		if(!invertSeed)
+			this.noise = new SimplexNoiseGenerator(world.getSeed());
+		else
+			this.noise = new SimplexNoiseGenerator(~(world.getSeed()));
+
+		range /= 2;
+		xs = (int) Math.round(x / scale);
+		zs = (int) Math.round(z / scale);
+		cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
+
+		return ((range * cnoise) + range);
 	}
 }

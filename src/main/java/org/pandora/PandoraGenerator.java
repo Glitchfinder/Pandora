@@ -26,6 +26,7 @@ package org.pandora;
 	import org.bukkit.generator.ChunkGenerator;
 	import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 	import org.bukkit.Location;
+	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
@@ -35,16 +36,19 @@ public class PandoraGenerator extends ChunkGenerator
 	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
 	private PandoraBiome lastGen, defaultGen, tempGen;
+	private SimplexNoiseGenerator noise;
 	private Location center, currentEdge, tempEdge;
-	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ;
-	private int cXPos, cZPos, index, edgeXPos, edgeZPos, edgeMax;
+	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ, xs, zs;
+	private int cXPos, cZPos, index, edgeXPos, edgeZPos, edgeMax, octaves;
 	private double temperature, humidity, tempRange, humidityRange;
+	private double range, scale, amplitude, frequency, cnoise;
 	private byte byteId;
 	private byte[] depTempColumn, depTempChunk, tempColumn;
 	private byte[][] tempChunk;
 	private short shortId;
 	private short[] extTempColumn;
 	private short[][] extTempChunk;
+	private boolean useCustomMetrics = false;
 
 	public PandoraGenerator addBiome(PandoraBiome biome) {
 		if(biome == null)
@@ -271,8 +275,15 @@ public class PandoraGenerator extends ChunkGenerator
 		if((x == lastX && z == lastZ && lastGen != null) || world == null)
 			return;
 
-		temperature = world.getTemperature(x, z);
-		humidity = world.getHumidity(x, z);
+		if(!useCustomMetrics) {
+			temperature = world.getTemperature(x, z);
+			humidity = world.getHumidity(x, z);
+		}
+		else {
+			temperature = getBiomeNoise(world, x, z, false);
+			humidity = getBiomeNoise(world, x, z, true);
+		}
+
 		lastGen = defaultGen;
 
 		for(PandoraBiome currentGen : generators) {
@@ -321,5 +332,35 @@ public class PandoraGenerator extends ChunkGenerator
 
 		defaultGen = biome;
 		return this;
+	}
+	
+	public void setUseCustomBiomeMetrics(boolean setting) {
+		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 15D);
+	}
+	
+	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale, int octaves, double amplitude, double frequency) {
+		this.useCustomMetrics = setting;
+		this.range = range;
+		this.scale = scale;
+		this.octaves = octaves;
+		this.amplitude = amplitude;
+		this.frequency = (frequency / 1000D);
+	}
+
+	private double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
+		if(world == null)
+			return 0;
+
+		if(!invertSeed)
+			this.noise = new SimplexNoiseGenerator(world.getSeed());
+		else
+			this.noise = new SimplexNoiseGenerator(~(world.getSeed()));
+
+		range /= 2;
+		xs = (int) Math.round(x / scale);
+		zs = (int) Math.round(z / scale);
+		cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
+
+		return ((range * cnoise) + range);
 	}
 }
