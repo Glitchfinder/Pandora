@@ -26,8 +26,6 @@ package org.pandora;
 	import org.bukkit.Material;
 	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
-//* IMPORTS: SPOUT
-	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 

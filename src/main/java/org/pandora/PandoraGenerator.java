@@ -27,8 +27,6 @@ package org.pandora;
 	import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 	import org.bukkit.Location;
 	import org.bukkit.World;
-//* IMPORTS: SPOUT
-	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
@@ -36,8 +34,9 @@ public class PandoraGenerator extends ChunkGenerator
 {
 	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
-	private PandoraBiome lastGen, defaultGen;
-	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ, cXPos, cZPos, index;
+	private PandoraBiome lastGen, defaultGen, tempGen;
+	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ;
+	private int cXPos, cZPos, index, edgeXPos, edgeZPos, edgeMax;
 	private double temperature, humidity, tempRange, humidityRange;
 	private byte byteId;
 	private byte[] depTempColumn, depTempChunk, tempColumn;
@@ -46,8 +45,7 @@ public class PandoraGenerator extends ChunkGenerator
 	private short[] extTempColumn;
 	private short[][] extTempChunk;
 
-	public PandoraGenerator addBiome(PandoraBiome biome)
-	{
+	public PandoraGenerator addBiome(PandoraBiome biome) {
 		if(biome == null)
 			return this;
 
@@ -55,8 +53,7 @@ public class PandoraGenerator extends ChunkGenerator
 		return this;
 	}
 
-	public PandoraGenerator addPopulator(BlockPopulator populator)
-	{
+	public PandoraGenerator addPopulator(BlockPopulator populator) {
 		if(populator == null)
 			return this;
 
@@ -64,8 +61,7 @@ public class PandoraGenerator extends ChunkGenerator
 		return this;
 	}
 
-	public boolean canSpawn(World world, int x, int z)
-	{
+	public boolean canSpawn(World world, int x, int z) {
 		getGenerator(world, x, z);
 
 		if(lastGen == null)
@@ -76,17 +72,14 @@ public class PandoraGenerator extends ChunkGenerator
 	}
 
 	@Deprecated
-	public byte[] generate(World world, Random rand, int x, int z)
-	{
+	public byte[] generate(World world, Random rand, int x, int z) {
 		depTempChunk = new byte[32768];
 		xPos = x * 16;
 		zPos = z * 16;
 
-		for(currentX = 0; currentX < 16; currentX++)
-		{
+		for(currentX = 0; currentX < 16; currentX++) {
 			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++)
-			{
+			for(currentZ = 0; currentZ < 16; currentZ++) {
 				cZPos = currentZ + zPos;
 				getGenerator(world, cXPos, cZPos);
 
@@ -119,11 +112,9 @@ public class PandoraGenerator extends ChunkGenerator
 		xPos = x * 16;
 		zPos = z * 16;
 
-		for(currentX = 0; currentX < 16; currentX++)
-		{
+		for(currentX = 0; currentX < 16; currentX++) {
 			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++)
-			{
+			for(currentZ = 0; currentZ < 16; currentZ++) {
 				cZPos = currentZ + zPos;
 				getGenerator(world, cXPos, cZPos);
 
@@ -136,8 +127,7 @@ public class PandoraGenerator extends ChunkGenerator
 				if(extTempColumn == null || extTempColumn.length < world.getMaxHeight())
 					return null;
 
-				for(currentY = 0; currentY < world.getMaxHeight(); currentY++)
-				{
+				for(currentY = 0; currentY < world.getMaxHeight(); currentY++) {
 					shortId = extTempColumn[currentY];
 					setBlock(extTempChunk, currentX, currentY, currentZ, shortId);
 				}
@@ -153,11 +143,9 @@ public class PandoraGenerator extends ChunkGenerator
 		xPos = x * 16;
 		zPos = z * 16;
 
-		for(currentX = 0; currentX < 16; currentX++)
-		{
+		for(currentX = 0; currentX < 16; currentX++) {
 			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++)
-			{
+			for(currentZ = 0; currentZ < 16; currentZ++) {
 				cZPos = currentZ + zPos;
 				getGenerator(world, cXPos, cZPos);
 
@@ -170,8 +158,7 @@ public class PandoraGenerator extends ChunkGenerator
 				if(tempColumn == null || tempColumn.length < world.getMaxHeight())
 					return null;
 
-				for(currentY = 0; currentY < world.getMaxHeight(); currentY++)
-				{
+				for(currentY = 0; currentY < world.getMaxHeight(); currentY++) {
 					byteId = tempColumn[currentY];
 					setBlock(tempChunk, currentX, currentY, currentZ, byteId);
 				}
@@ -181,23 +168,43 @@ public class PandoraGenerator extends ChunkGenerator
 		return tempChunk;
 	}
 
-	public List<PandoraBiome> getDefaultBiomes(World world)
-	{
+	public List<PandoraBiome> getDefaultBiomes(World world) {
 		return generators;
 	}
 
-	public List<BlockPopulator> getDefaultPopulators(World world)
-	{
+	public List<BlockPopulator> getDefaultPopulators(World world) {
 		return populators;
 	}
 
-	public Location getFixedSpawnLocation(World world, Random rand)
-	{
+	public Location getFixedSpawnLocation(World world, Random rand) {
 		return null;
 	}
 
-	private void getGenerator(World world, int x, int z)
-	{
+	private boolean isNearEdge(World world, int x, int z, int period, int count) {
+		if(world == null)
+			return false;
+
+		getGenerator(world, x, z);
+
+		if(lastGen == null)
+			return false;
+
+		tempGen = lastGen;
+		edgeMax = period * count;
+
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); x += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); z += period) {
+				getGenerator(world, edgeXPos, edgeZPos);
+
+				if(lastGen != tempGen)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void getGenerator(World world, int x, int z) {
 		if((x == lastX && z == lastZ && lastGen != null) || world == null)
 			return;
 
@@ -205,8 +212,7 @@ public class PandoraGenerator extends ChunkGenerator
 		humidity = world.getHumidity(x, z);
 		lastGen = defaultGen;
 
-		for(PandoraBiome currentGen : generators)
-		{
+		for(PandoraBiome currentGen : generators) {
 			if(currentGen.minTemperature > temperature)
 				continue;
 			else if(currentGen.maxTemperature < temperature)
@@ -215,8 +221,7 @@ public class PandoraGenerator extends ChunkGenerator
 				continue;
 			else if(currentGen.maxHumidity < humidity)
 				continue;
-			else if(lastGen == defaultGen)
-			{
+			else if(lastGen == defaultGen) {
 				lastGen = currentGen;
 				tempRange = lastGen.maxTemperature - lastGen.minTemperature;
 				humidityRange = lastGen.maxHumidity - lastGen.minHumidity;
@@ -233,24 +238,21 @@ public class PandoraGenerator extends ChunkGenerator
 		}
 	}
 
-	private void setBlock(byte[][] result, int x, int y, int z, byte id)
-	{
+	private void setBlock(byte[][] result, int x, int y, int z, byte id) {
 		if(result[y >> 4] == null)
 			result[y >> 4] = new byte[4096];
 
 		result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = id;
 	}
 
-	private void setBlock(short[][] result, int x, int y, int z, short id)
-	{
+	private void setBlock(short[][] result, int x, int y, int z, short id) {
 		if(result[y >> 4] == null)
 			result[y >> 4] = new short[4096];
 
 		result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = id;
 	}
 
-	public PandoraGenerator setDefaultBiome(PandoraBiome biome)
-	{
+	public PandoraGenerator setDefaultBiome(PandoraBiome biome) {
 		if(biome == null)
 			return this;
 

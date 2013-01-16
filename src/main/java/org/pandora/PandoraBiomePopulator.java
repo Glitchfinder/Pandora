@@ -22,8 +22,6 @@ package org.pandora;
 //* IMPORTS: BUKKIT
 	import org.bukkit.Chunk;
 	import org.bukkit.World;
-//* IMPORTS: SPOUT
-	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 

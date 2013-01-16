@@ -25,20 +25,18 @@ package org.pandora;
 	import org.bukkit.Chunk;
 	import org.bukkit.generator.BlockPopulator;
 	import org.bukkit.World;
-//* IMPORTS: SPOUT
-	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
 public class PandoraPopulator extends BlockPopulator
 {
 	private List<PandoraBiomePopulator> populators = new ArrayList<PandoraBiomePopulator>();
-	private PandoraBiomePopulator lastPop, defaultPop;
+	private PandoraBiomePopulator lastPop, defaultPop, tempPop;
 	private int lastX, lastZ, xPos, zPos, currentX, currentZ, cXPos, cZPos;
+	private int edgeMax, edgeXPos, edgeZPos;
 	private double temperature, humidity, tempRange, humidityRange;
 
-	public PandoraPopulator addBiome(PandoraBiomePopulator biome)
-	{
+	public PandoraPopulator addBiome(PandoraBiomePopulator biome) {
 		if(biome == null)
 			return this;
 
@@ -46,16 +44,13 @@ public class PandoraPopulator extends BlockPopulator
 		return this;
 	}
 
-	public void populate(World world, Random random, Chunk source)
-	{
+	public void populate(World world, Random random, Chunk source) {
 		xPos = source.getX() * 16;
 		zPos = source.getZ() * 16;
 
-		for(currentX = 0; currentX < 16; currentX++)
-		{
+		for(currentX = 0; currentX < 16; currentX++) {
 			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++)
-			{
+			for(currentZ = 0; currentZ < 16; currentZ++) {
 				cZPos = currentZ + zPos;
 				getPopulator(world, cXPos, cZPos);
 
@@ -67,13 +62,35 @@ public class PandoraPopulator extends BlockPopulator
 		}
 	}
 
-	public List<PandoraBiomePopulator> getDefaultBiomes(World world)
-	{
+	public List<PandoraBiomePopulator> getDefaultBiomes(World world) {
 		return populators;
 	}
 
-	private void getPopulator(World world, int x, int z)
-	{
+	private boolean isNearEdge(World world, int x, int z, int period, int count) {
+		if(world == null)
+			return false;
+
+		getPopulator(world, x, z);
+
+		if(lastPop == null)
+			return false;
+
+		tempPop = lastPop;
+		edgeMax = period * count;
+
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); x += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); z += period) {
+				getPopulator(world, edgeXPos, edgeZPos);
+
+				if(lastPop != tempPop)
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void getPopulator(World world, int x, int z) {
 		if((x == lastX && z == lastZ && lastPop != null) || world == null)
 			return;
 
@@ -81,8 +98,7 @@ public class PandoraPopulator extends BlockPopulator
 		humidity = world.getHumidity(x, z);
 		lastPop = defaultPop;
 
-		for(PandoraBiomePopulator currentPop : populators)
-		{
+		for(PandoraBiomePopulator currentPop : populators) {
 			if(currentPop.minTemperature > temperature)
 				continue;
 			else if(currentPop.maxTemperature < temperature)
@@ -91,8 +107,7 @@ public class PandoraPopulator extends BlockPopulator
 				continue;
 			else if(currentPop.maxHumidity < humidity)
 				continue;
-			else if(lastPop == defaultPop)
-			{
+			else if(lastPop == defaultPop) {
 				lastPop = currentPop;
 				tempRange = lastPop.maxTemperature - lastPop.minTemperature;
 				humidityRange = lastPop.maxHumidity - lastPop.minHumidity;
@@ -109,8 +124,7 @@ public class PandoraPopulator extends BlockPopulator
 		}
 	}
 
-	public PandoraPopulator setDefaultBiome(PandoraBiomePopulator biome)
-	{
+	public PandoraPopulator setDefaultBiome(PandoraBiomePopulator biome) {
 		if(biome == null)
 			return this;
 

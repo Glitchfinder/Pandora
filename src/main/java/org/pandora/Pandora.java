@@ -21,8 +21,6 @@ package org.pandora;
 	//* NOT NEEDED
 //* IMPORTS: BUKKIT
 	import org.bukkit.plugin.java.JavaPlugin;
-//* IMPORTS: SPOUT
-	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
