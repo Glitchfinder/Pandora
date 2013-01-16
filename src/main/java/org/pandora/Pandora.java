@@ -26,6 +26,6 @@ package org.pandora;
 
 public class Pandora extends JavaPlugin
 {
-	public void onDisable() {}
 	public void onEnable() {}
+	public void onDisable() {}
 }
