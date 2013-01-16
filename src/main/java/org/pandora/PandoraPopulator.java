@@ -24,6 +24,7 @@ package org.pandora;
 //* IMPORTS: BUKKIT
 	import org.bukkit.Chunk;
 	import org.bukkit.generator.BlockPopulator;
+	import org.bukkit.Location;
 	import org.bukkit.World;
 //* IMPORTS: OTHER
 	//* NOT NEEDED
@@ -32,6 +33,7 @@ public class PandoraPopulator extends BlockPopulator
 {
 	private List<PandoraBiomePopulator> populators = new ArrayList<PandoraBiomePopulator>();
 	private PandoraBiomePopulator lastPop, defaultPop, tempPop;
+	private Location center, currentEdge, tempEdge;
 	private int lastX, lastZ, xPos, zPos, currentX, currentZ, cXPos, cZPos;
 	private int edgeMax, edgeXPos, edgeZPos;
 	private double temperature, humidity, tempRange, humidityRange;
@@ -78,8 +80,8 @@ public class PandoraPopulator extends BlockPopulator
 		tempPop = lastPop;
 		edgeMax = period * count;
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); x += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); z += period) {
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
 				getPopulator(world, edgeXPos, edgeZPos);
 
 				if(lastPop != tempPop)
@@ -88,6 +90,53 @@ public class PandoraPopulator extends BlockPopulator
 		}
 
 		return false;
+	}
+
+	private Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
+		if(world == null)
+			return null;
+
+		getPopulator(world, x, z);
+
+		if(lastPop == null)
+			return null;
+
+		tempPop = lastPop;
+		edgeMax = period * count;
+
+		currentEdge = null;
+		tempEdge = null;
+
+		center = new Location(world, (double) x, 0D, (double) z);
+
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
+				getPopulator(world, edgeXPos, edgeZPos);
+
+				if(lastPop != tempPop && currentEdge == null) {
+					currentEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+					continue;
+				}
+				else if(lastPop != tempPop) {
+					tempEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+
+					if(center.distance(currentEdge) > center.distance(tempEdge))
+						currentEdge = tempEdge;
+				}
+			}
+		}
+
+		if(currentEdge == null) {
+			return null;
+		}
+		else if(!inner) {
+			edgeXPos = currentEdge.getBlockX();
+			edgeZPos = currentEdge.getBlockZ();
+
+			return getNearestEdge(world, edgeXPos, edgeZPos, 1, period, true);
+		}
+
+		return currentEdge;
 	}
 
 	private void getPopulator(World world, int x, int z) {

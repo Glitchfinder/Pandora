@@ -35,6 +35,7 @@ public class PandoraGenerator extends ChunkGenerator
 	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
 	private PandoraBiome lastGen, defaultGen, tempGen;
+	private Location center, currentEdge, tempEdge;
 	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ;
 	private int cXPos, cZPos, index, edgeXPos, edgeZPos, edgeMax;
 	private double temperature, humidity, tempRange, humidityRange;
@@ -192,8 +193,8 @@ public class PandoraGenerator extends ChunkGenerator
 		tempGen = lastGen;
 		edgeMax = period * count;
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); x += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); z += period) {
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
 				getGenerator(world, edgeXPos, edgeZPos);
 
 				if(lastGen != tempGen)
@@ -202,6 +203,53 @@ public class PandoraGenerator extends ChunkGenerator
 		}
 
 		return false;
+	}
+
+	private Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
+		if(world == null)
+			return null;
+
+		getGenerator(world, x, z);
+
+		if(lastGen == null)
+			return null;
+
+		tempGen = lastGen;
+		edgeMax = period * count;
+
+		currentEdge = null;
+		tempEdge = null;
+
+		center = new Location(world, (double) x, 0D, (double) z);
+
+		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
+			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
+				getGenerator(world, edgeXPos, edgeZPos);
+
+				if(lastGen != tempGen && currentEdge == null) {
+					currentEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+					continue;
+				}
+				else if(lastGen != tempGen) {
+					tempEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+
+					if(center.distance(currentEdge) > center.distance(tempEdge))
+						currentEdge = tempEdge;
+				}
+			}
+		}
+
+		if(currentEdge == null) {
+			return null;
+		}
+		else if(!inner) {
+			edgeXPos = currentEdge.getBlockX();
+			edgeZPos = currentEdge.getBlockZ();
+
+			return getNearestEdge(world, edgeXPos, edgeZPos, 1, period, true);
+		}
+
+		return currentEdge;
 	}
 
 	private void getGenerator(World world, int x, int z) {
