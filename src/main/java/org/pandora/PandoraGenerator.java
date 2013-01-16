@@ -181,7 +181,7 @@ public class PandoraGenerator extends ChunkGenerator
 		return null;
 	}
 
-	private boolean isNearEdge(World world, int x, int z, int period, int count) {
+	public boolean isNearEdge(World world, int x, int z, int period, int count) {
 		if(world == null)
 			return false;
 
@@ -205,7 +205,7 @@ public class PandoraGenerator extends ChunkGenerator
 		return false;
 	}
 
-	private Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
+	public Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
 		if(world == null)
 			return null;
 
@@ -250,6 +250,21 @@ public class PandoraGenerator extends ChunkGenerator
 		}
 
 		return currentEdge;
+	}
+
+	public Location getNearestEdge(World world, int x, int z, int period, int count) {
+		return getNearestEdge(world, x, z, period, count, false);
+	}
+
+	public int getNearestEdgeBlockDistance(World world, int x, int z, int period, int count) {
+		return (int) getNearestEdgeDistance(world, x, z, period, count);
+	}
+
+	public double getNearestEdgeDistance(World world, int x, int z, int period, int count) {
+		if(getNearestEdge(world, x, z, period, count) == null)
+			return -1D;
+
+		return center.distance(currentEdge);
 	}
 
 	private void getGenerator(World world, int x, int z) {
