@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Sean Porter <glitchkey@gmail.com>
+ * Copyright (c) 2012-2013 Sean Porter <glitchkey@gmail.com>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,12 +40,10 @@ public abstract class PandoraBiome
 	private double cnoise;
 	private World world;
 
-	public boolean canSpawn(int x, int z)
-	{
+	public boolean canSpawn(int x, int z) {
 		highest = world.getBlockAt(x, world.getHighestBlockYAt(x, z), z);
 
-		switch(world.getEnvironment())
-		{
+		switch(world.getEnvironment()) {
 			case NETHER:
 				highest = null;
 				return true;
@@ -67,25 +65,21 @@ public abstract class PandoraBiome
 	}
 
 	@Deprecated
-	public byte[] generate(Random random, int x, int z)
-	{
+	public byte[] generate(Random random, int x, int z) {
 		msg = "Custom generator is missing required methods: ";
 		msg += "generate(), generateSections(), and generateExtSections()";
 		throw new UnsupportedOperationException(msg);
 	}
 
-	public short[] generateExtSections(Random random, int x, int z, BiomeGrid biomes)
-	{
+	public short[] generateExtSections(Random random, int x, int z, BiomeGrid biomes) {
 		return null;
 	}
 
-	public byte[] generateSections(Random random, int x, int z, BiomeGrid biomes)
-	{
+	public byte[] generateSections(Random random, int x, int z, BiomeGrid biomes) {
 		return null;
 	}
 
-	public int getNoise(int x, int z, double range, double scale, int octaves, double amplitude, double frequency)
-	{
+	public int getNoise(int x, int z, double range, double scale, int octaves, double amplitude, double frequency) {
 		range /= 2;
 		xs = (int) Math.round(x / scale);
 		zs = (int) Math.round(z / scale);
@@ -93,18 +87,15 @@ public abstract class PandoraBiome
 		return (int) ((range * cnoise) + range);
 	}
 
-	private double getTemperature(int x, int z)
-	{
+	private double getTemperature(int x, int z) {
 		return world.getTemperature(x, z);
 	}
 
-	private double getHumidity(int x, int z)
-	{
+	private double getHumidity(int x, int z) {
 		return world.getHumidity(x, z);
 	}
 
-	public void synchronize(World world)
-	{
+	public void synchronize(World world) {
 		if(this.world == world)
 			return;
 
