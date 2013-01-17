@@ -173,16 +173,19 @@ public class PandoraGenerator extends ChunkGenerator
 		return extTempChunk;
 	}
 
-	private double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
+	public double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
 		if(world == null)
-			return 0;
+			return 0D;
+
+		if(!useCustomMetrics)
+			return 0D;
 
 		if(!invertSeed)
 			this.noise = new SimplexNoiseGenerator(world.getSeed());
 		else
 			this.noise = new SimplexNoiseGenerator(~(world.getSeed()));
 
-		range /= 2;
+		range /= 2D;
 		xs = (int) Math.round(x / scale);
 		zs = (int) Math.round(z / scale);
 		cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
@@ -206,14 +209,8 @@ public class PandoraGenerator extends ChunkGenerator
 		if((x == lastX && z == lastZ && lastGen != null) || world == null)
 			return;
 
-		if(!useCustomMetrics) {
-			temperature = world.getTemperature(x, z);
-			humidity = world.getHumidity(x, z);
-		}
-		else {
-			temperature = getBiomeNoise(world, x, z, false);
-			humidity = getBiomeNoise(world, x, z, true);
-		}
+		temperature = getTemperature(world, x, z);
+		humidity = getHumidity(world, x, z);
 
 		lastGen = defaultGen;
 
@@ -241,6 +238,13 @@ public class PandoraGenerator extends ChunkGenerator
 			tempRange = lastGen.maxTemperature - lastGen.minTemperature;
 			humidityRange = lastGen.maxHumidity - lastGen.minHumidity;
 		}
+	}
+
+	public double getHumidity(World world, int x, int z) {
+		if(useCustomMetrics)
+			return getBiomeNoise(world, x, z, true);
+
+		return world.getHumidity(x, z);
 	}
 
 	public Location getNearestEdge(World world, int x, int z, int period, int count) {
@@ -305,6 +309,13 @@ public class PandoraGenerator extends ChunkGenerator
 		return center.distance(currentEdge);
 	}
 
+	public double getTemperature(World world, int x, int z) {
+		if(useCustomMetrics)
+			return getBiomeNoise(world, x, z, false);
+
+		return world.getTemperature(x, z);
+	}
+
 	public boolean isNearEdge(World world, int x, int z, int period, int count) {
 		if(world == null)
 			return false;
@@ -327,6 +338,10 @@ public class PandoraGenerator extends ChunkGenerator
 		}
 
 		return false;
+	}
+
+	public boolean isUsingCustomBiomeMetrics() {
+		return useCustomMetrics;
 	}
 
 	private void setBlock(byte[][] result, int x, int y, int z, byte id) {

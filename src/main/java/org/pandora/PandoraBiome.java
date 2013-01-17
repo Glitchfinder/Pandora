@@ -87,12 +87,18 @@ public abstract class PandoraBiome
 		return (int) ((range * cnoise) + range);
 	}
 
-	private double getTemperature(int x, int z) {
-		return world.getTemperature(x, z);
+	public double getTemperature(int x, int z) {
+		if(world.getGenerator() == null || !(world.getGenerator() instanceof PandoraGenerator))
+			return world.getTemperature(x, z);
+
+		return ((PandoraGenerator) world.getGenerator()).getTemperature(world, x, z);
 	}
 
-	private double getHumidity(int x, int z) {
-		return world.getHumidity(x, z);
+	public double getHumidity(int x, int z) {
+		if(world.getGenerator() == null || !(world.getGenerator() instanceof PandoraGenerator))
+			return world.getHumidity(x, z);
+
+		return ((PandoraGenerator) world.getGenerator()).getHumidity(world, x, z);
 	}
 
 	public void synchronize(World world) {
