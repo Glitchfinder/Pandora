@@ -109,3 +109,4 @@ public abstract class PandoraBiome
 		this.noise = new SimplexNoiseGenerator(world.getSeed());
 	}
 }
+
