@@ -253,4 +253,3 @@ public class PandoraPopulator extends BlockPopulator
 		this.frequency = (frequency / 1000D);
 	}
 }
-

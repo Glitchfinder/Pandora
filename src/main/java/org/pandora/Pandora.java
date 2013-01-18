@@ -29,4 +29,3 @@ public class Pandora extends JavaPlugin
 	public void onEnable() {}
 	public void onDisable() {}
 }
-

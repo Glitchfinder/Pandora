@@ -3,4 +3,3 @@ description: A world generator plugin API.
 main: org.pandora.Pandora
 name: Pandora
 version: '1.0'
-

@@ -31,4 +31,3 @@ public abstract class PandoraBiomePopulator
 
 	public abstract void populate(World world, Random random, Chunk source, int x, int z);
 }
-

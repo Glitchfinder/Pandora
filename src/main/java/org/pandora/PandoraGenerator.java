@@ -379,4 +379,3 @@ public class PandoraGenerator extends ChunkGenerator
 		this.frequency = (frequency / 1000D);
 	}
 }
-
