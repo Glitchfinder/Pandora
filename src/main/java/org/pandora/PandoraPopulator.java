@@ -27,6 +27,8 @@ package org.pandora;
 	import org.bukkit.Location;
 	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
+//* IMPORTS: PANDORA
+	//* NOT NEEDED
 //* IMPORTS: OTHER
 	//* NOT NEEDED
 
