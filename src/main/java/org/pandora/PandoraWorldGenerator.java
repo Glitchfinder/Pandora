@@ -194,6 +194,154 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator addToBlacklist(Block block) {
+		if(block == null)
+			return this;
+
+		return addToBlacklist(block.getTypeId(), block.getData());
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Block blocks[]) {
+		for(Block block : blocks) {
+			if(block == null)
+				continue;
+
+			addToBlacklist(block.getTypeId(), block.getData());
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(BlockValues values) {
+		for(BlockValues listItem : replaceBlacklist) {
+			if(listItem.getId() != values.getId())
+				continue;
+
+			if(listItem.getData() != values.getData())
+				continue;
+
+			return this;
+		}
+
+		replaceBlacklist.add(values);
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(BlockValues blocks[]) {
+		for(BlockValues block : blocks) {
+			if(block == null)
+				continue;
+
+			addToBlacklist(block);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(int id) {
+		return addToBlacklist(id, (byte) 0);
+	}
+
+	public PandoraWorldGenerator addToBlacklist(int ids[]) {
+		for(int id : ids) {
+			addToBlacklist(id);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(List<Object> objects) {
+		for(Object object : objects) {
+			if(object instanceof Block)
+				addToBlacklist((Block) object);
+			else if(object instanceof BlockValues)
+				addToBlacklist((BlockValues) object);
+			else if(object instanceof Integer)
+				addToBlacklist((Integer) object);
+			else if(object instanceof Material)
+				addToBlacklist((Material) object);
+			else if(object instanceof String)
+				addToBlacklist((String) object);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Location location) {
+		if(location == null)
+			return this;
+
+		return addToBlacklist(location.getBlock());
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Location locations[]) {
+		for(Location location : locations) {
+			if(location == null)
+				continue;
+
+			addToBlacklist(location);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Material material) {
+		return addToBlacklist(material, (byte) 0);
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Material materials[]) {
+		for(Material material : materials) {
+			if(material == null)
+				continue;
+
+			addToBlacklist(material);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(String name) {
+		return addToBlacklist(name, (byte) 0);
+	}
+
+	public PandoraWorldGenerator addToBlacklist(String names[]) {
+		for(String name : names) {
+			if(name == null)
+				continue;
+
+			addToBlacklist(name);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToBlacklist(int id, byte data) {
+		try {
+			return addToBlacklist(new BlockValues(id, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
+
+	public PandoraWorldGenerator addToBlacklist(Material material, byte data) {
+		try {
+			return addToBlacklist(new BlockValues(material, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
+
+	public PandoraWorldGenerator addToBlacklist(String name, byte data) {
+		try {
+			return addToBlacklist(new BlockValues(name, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
 
 	protected abstract boolean generate(World world, Random random, int x, int y, int z);
 
@@ -314,15 +462,159 @@ public abstract class PandoraWorldGenerator
 
 			boolean blacklisted = isInBlacklist(block);
 
-			if(fastFail && blacklisted && !invertBlacklist)
-				continue;
-			else if(fastFail && !blacklisted && invertBlacklist)
-				continue;
-
 			setBlock(block, modifiedBlocks.get(block));
 		}
 
 		return true;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Block block) {
+		if(block == null)
+			return this;
+
+		return removeFromBlacklist(block.getTypeId(), block.getData());
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Block blocks[]) {
+		for(Block block : blocks) {
+			if(block == null)
+				continue;
+
+			removeFromBlacklist(block.getTypeId(), block.getData());
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(BlockValues values) {
+		for(BlockValues listItem : replaceBlacklist) {
+			if(listItem.getId() != values.getId())
+				continue;
+
+			if(listItem.getData() != values.getData())
+				continue;
+
+			return this;
+		}
+
+		replaceBlacklist.remove(values);
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(BlockValues blocks[]) {
+		for(BlockValues block : blocks) {
+			if(block == null)
+				continue;
+
+			removeFromBlacklist(block);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(int id) {
+		return removeFromBlacklist(id, (byte) 0);
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(int ids[]) {
+		for(int id : ids) {
+			removeFromBlacklist(id);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(List<Object> objects) {
+		for(Object object : objects) {
+			if(object instanceof Block)
+				removeFromBlacklist((Block) object);
+			else if(object instanceof BlockValues)
+				removeFromBlacklist((BlockValues) object);
+			else if(object instanceof Integer)
+				removeFromBlacklist((Integer) object);
+			else if(object instanceof Material)
+				removeFromBlacklist((Material) object);
+			else if(object instanceof String)
+				removeFromBlacklist((String) object);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Location location) {
+		if(location == null)
+			return this;
+
+		return removeFromBlacklist(location.getBlock());
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Location locations[]) {
+		for(Location location : locations) {
+			if(location == null)
+				continue;
+
+			removeFromBlacklist(location);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Material material) {
+		return removeFromBlacklist(material, (byte) 0);
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Material materials[]) {
+		for(Material material : materials) {
+			if(material == null)
+				continue;
+
+			removeFromBlacklist(material);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(String name) {
+		return removeFromBlacklist(name, (byte) 0);
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(String names[]) {
+		for(String name : names) {
+			if(name == null)
+				continue;
+
+			removeFromBlacklist(name);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(int id, byte data) {
+		try {
+			return removeFromBlacklist(new BlockValues(id, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(Material material, byte data) {
+		try {
+			return removeFromBlacklist(new BlockValues(material, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(String name, byte data) {
+		try {
+			return removeFromBlacklist(new BlockValues(name, data));
+		}
+		catch(Exception e) {
+			return this;
+		}
 	}
 
 	private void setBlock(Block block, BlockValues values) {
