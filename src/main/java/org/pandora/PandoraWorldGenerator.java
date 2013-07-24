@@ -108,6 +108,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean addBlock(Block block, int id, int data) {
+		return addBlock(block, id, (byte) data);
+	}
+
 	public boolean addBlock(Block block, Material material, byte data) {
 		try {
 			return addBlock(block, new BlockValues(material, data));
@@ -115,6 +119,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return false;
 		}
+	}
+
+	public boolean addBlock(Block block, Material material, int data) {
+		return addBlock(block, material, (byte) data);
 	}
 
 	public boolean addBlock(Block block, String name, byte data) {
@@ -126,6 +134,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean addBlock(Block block, String name, int data) {
+		return addBlock(block, name, (byte) data);
+	}
+
 	public boolean addBlock(Location location, int id, byte data) {
 		try {
 			return addBlock(location.getBlock(), new BlockValues(id, data));
@@ -133,6 +145,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return false;
 		}
+	}
+
+	public boolean addBlock(Location location, int id, int data) {
+		return addBlock(location, id, (byte) data);
 	}
 
 	public boolean addBlock(Location location, Material material, byte data) {
@@ -144,6 +160,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean addBlock(Location location, Material material, int data) {
+		return addBlock(location, material, (byte) data);
+	}
+
 	public boolean addBlock(Location location, String name, byte data) {
 		try {
 			return addBlock(location.getBlock(), new BlockValues(name, data));
@@ -151,6 +171,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return false;
 		}
+	}
+
+	public boolean addBlock(Location location, String name, int data) {
+		return addBlock(location, name, (byte) data);
 	}
 
 	public boolean addBlock(World world, int x, int y, int z, int id) {
@@ -174,6 +198,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean addBlock(World world, int x, int y, int z, int id, int data) {
+		return addBlock(world, x, y, z, id, (byte) data);
+	}
+
 	public boolean addBlock(World world, int x, int y, int z, Material material, byte data) {
 		try {
 			return addBlock(world.getBlockAt(x, y, z), new BlockValues(material, data));
@@ -183,6 +211,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean addBlock(World world, int x, int y, int z, Material material, int data) {
+		return addBlock(world, x, y, z, material, (byte) data);
+	}
+
 	public boolean addBlock(World world, int x, int y, int z, String name, byte data) {
 		try {
 			return addBlock(world.getBlockAt(x, y, z), new BlockValues(name, data));
@@ -190,6 +222,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return false;
 		}
+	}
+
+	public boolean addBlock(World world, int x, int y, int z, String name, int data) {
+		return addBlock(world, x, y, z, name, (byte) data);
 	}
 
 	public PandoraWorldGenerator addToBlacklist(Block block) {
@@ -323,6 +359,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator addToBlacklist(int id, int data) {
+		return addToBlacklist(id, (byte) data);
+	}
+
 	public PandoraWorldGenerator addToBlacklist(Material material, byte data) {
 		try {
 			return addToBlacklist(new BlockValues(material, data));
@@ -332,6 +372,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator addToBlacklist(Material material, int data) {
+		return addToBlacklist(material, (byte) data);
+	}
+
 	public PandoraWorldGenerator addToBlacklist(String name, byte data) {
 		try {
 			return addToBlacklist(new BlockValues(name, data));
@@ -339,6 +383,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return this;
 		}
+	}
+
+	public PandoraWorldGenerator addToBlacklist(String name, int data) {
+		return addToBlacklist(name, (byte) data);
 	}
 
 	public PandoraWorldGenerator addToWhitelist(Block block) {
@@ -406,7 +454,7 @@ public abstract class PandoraWorldGenerator
 
 	public boolean isInBlacklist(Block block) {
 		if(block == null)
-			return true;
+			return false;
 		else if(isInWhitelist(block))
 			return invertBlacklist;
 
@@ -433,7 +481,7 @@ public abstract class PandoraWorldGenerator
 
 	public boolean isInBlacklist(Location location) {
 		if(location == null)
-			return true;
+			return false;
 		else if(isInWhitelist(location))
 			return invertBlacklist;
 
@@ -453,8 +501,12 @@ public abstract class PandoraWorldGenerator
 			return isInBlacklist(new BlockValues(id, data));
 		}
 		catch(Exception e) {
-			return true;
+			return false;
 		}
+	}
+
+	public boolean isInBlacklist(int id, int data) {
+		return isInBlacklist(id, (byte) data);
 	}
 
 	public boolean isInBlacklist(Material material, byte data) {
@@ -462,8 +514,12 @@ public abstract class PandoraWorldGenerator
 			return isInBlacklist(new BlockValues(material, data));
 		}
 		catch(Exception e) {
-			return true;
+			return false;
 		}
+	}
+
+	public boolean isInBlacklist(Material material, int data) {
+		return isInBlacklist(material, (byte) data);
 	}
 
 	public boolean isInBlacklist(String name, byte data) {
@@ -471,8 +527,12 @@ public abstract class PandoraWorldGenerator
 			return isInBlacklist(new BlockValues(name, data));
 		}
 		catch(Exception e) {
-			return true;
+			return false;
 		}
+	}
+
+	public boolean isInBlacklist(String name, int data) {
+		return isInBlacklist(name, (byte) data);
 	}
 
 	public boolean isInWhitelist(Block block) {
@@ -685,6 +745,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator removeFromBlacklist(int id, int data) {
+		return removeFromBlacklist(id, (byte) data);
+	}
+
 	public PandoraWorldGenerator removeFromBlacklist(Material material, byte data) {
 		try {
 			return removeFromBlacklist(new BlockValues(material, data));
@@ -694,6 +758,10 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator removeFromBlacklist(Material material, int data) {
+		return removeFromBlacklist(material, (byte) data);
+	}
+
 	public PandoraWorldGenerator removeFromBlacklist(String name, byte data) {
 		try {
 			return removeFromBlacklist(new BlockValues(name, data));
@@ -701,6 +769,10 @@ public abstract class PandoraWorldGenerator
 		catch(Exception e) {
 			return this;
 		}
+	}
+
+	public PandoraWorldGenerator removeFromBlacklist(String name, int data) {
+		return removeFromBlacklist(name, (byte) data);
 	}
 
 	private void setBlock(Block block, BlockValues values) {
@@ -713,6 +785,10 @@ public abstract class PandoraWorldGenerator
 
 	private void setBlock(Block block, int id, byte data) {
 		block.setTypeIdAndData(id, data, notifyOnBlockChanges);
+	}
+
+	private void setBlock(Block block, int id, int data) {
+		setBlock(block, id, (byte) data);
 	}
 
 	public void setScale(double xScale, double yScale, double zScale) {}

@@ -48,12 +48,24 @@ public class BlockValues implements Serializable {
 		this(id, data, 0, 0, 0);
 	}
 
+	public BlockValues(int id, int data) throws IllegalArgumentException {
+		this(id, (byte) data, 0, 0, 0);
+	}
+
 	public BlockValues(Material material, byte data) throws IllegalArgumentException {
 		this(material, data, 0, 0, 0);
 	}
 
+	public BlockValues(Material material, int data) throws IllegalArgumentException {
+		this(material, (byte) data, 0, 0, 0);
+	}
+
 	public BlockValues(String name, byte data) throws IllegalArgumentException {
 		this(name, data, 0, 0, 0);
+	}
+
+	public BlockValues(String name, int data) throws IllegalArgumentException {
+		this(name, (byte) data, 0, 0, 0);
 	}
 
 	public BlockValues(int id, byte data, int x, int y, int z) throws IllegalArgumentException {
@@ -62,16 +74,28 @@ public class BlockValues implements Serializable {
 		setCoordinates(x, y, z);
 	}
 
+	public BlockValues(int id, int data, int x, int y, int z) throws IllegalArgumentException {
+		this(id, (byte) data, x, y, z);
+	}
+
 	public BlockValues(Material material, byte data, int x, int y, int z) throws IllegalArgumentException {
 		setMaterial(material);
 		setData(data);
 		setCoordinates(x, y, z);
 	}
 
+	public BlockValues(Material material, int data, int x, int y, int z) throws IllegalArgumentException {
+		this(material, (byte) data, x, y, z);
+	}
+
 	public BlockValues(String name, byte data, int x, int y, int z) throws IllegalArgumentException {
 		setMaterial(name);
 		setData(data);
 		setCoordinates(x, y, z);
+	}
+
+	public BlockValues(String name, int data, int x, int y, int z) throws IllegalArgumentException {
+		this(name, (byte) data, x, y, z);
 	}
 
 	private void checkData(byte data) throws IllegalArgumentException {
@@ -136,6 +160,13 @@ public class BlockValues implements Serializable {
 	public BlockValues setData(byte data) throws IllegalArgumentException {
 		checkData(data);
 		this.data = data;
+
+		return this;
+	}
+
+	public BlockValues setData(int data) throws IllegalArgumentException {
+		checkData((byte) data);
+		this.data = ((byte) data);
 
 		return this;
 	}
