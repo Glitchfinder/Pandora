@@ -41,6 +41,7 @@ public abstract class PandoraWorldGenerator
 {
 	private Map<Block, BlockValues> modifiedBlocks = new HashMap<Block, BlockValues>();
 	private List<BlockValues> replaceBlacklist = new ArrayList<BlockValues>();
+	private List<Block> replaceWhitelist = new ArrayList<Block>();
 
 	private final Plugin plugin;
 	private Location location;
@@ -65,9 +66,6 @@ public abstract class PandoraWorldGenerator
 	public boolean addBlock(Block block, BlockValues values) {
 		if(block == null || values == null)
 			return false;
-
-		if(modifiedBlocks.containsKey(block))
-			return true;
 
 		modifiedBlocks.put(block, values);
 
@@ -343,6 +341,63 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public PandoraWorldGenerator addToWhitelist(Block block) {
+		if(block == null)
+			return this;
+
+		replaceWhitelist.add(block);
+		return this;
+	}
+
+	public PandoraWorldGenerator addToWhitelist(Block blocks[]) {
+		for(Block block : blocks) {
+			if(block == null)
+				continue;
+
+			addToWhitelist(block);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToWhitelist(List<Object> objects) {
+		for(Object object : objects) {
+			if(object instanceof Block)
+				addToWhitelist((Block) object);
+			else if(object instanceof Location)
+				addToWhitelist((Location) object);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToWhitelist(Location location) {
+		if(location == null)
+			return this;
+
+		return addToWhitelist(location.getBlock());
+	}
+
+	public PandoraWorldGenerator addToWhitelist(Location locations[]) {
+		for(Location location : locations) {
+			if(location == null)
+				continue;
+
+			addToWhitelist(location);
+		}
+
+		return this;
+	}
+
+	public PandoraWorldGenerator addToWhitelist(World world, int x, int y, int z) {
+		try {
+			return addToWhitelist(world.getBlockAt(x, y, z));
+		}
+		catch(Exception e) {
+			return this;
+		}
+	}
+
 	protected abstract boolean generate(World world, Random random, int x, int y, int z);
 
 	public void invertBlacklist() {
@@ -352,6 +407,8 @@ public abstract class PandoraWorldGenerator
 	public boolean isInBlacklist(Block block) {
 		if(block == null)
 			return true;
+		else if(isInWhitelist(block))
+			return invertBlacklist;
 
 		return isInBlacklist(block.getTypeId(), block.getData());
 	}
@@ -377,6 +434,8 @@ public abstract class PandoraWorldGenerator
 	public boolean isInBlacklist(Location location) {
 		if(location == null)
 			return true;
+		else if(isInWhitelist(location))
+			return invertBlacklist;
 
 		return isInBlacklist(location.getBlock());
 	}
@@ -416,6 +475,29 @@ public abstract class PandoraWorldGenerator
 		}
 	}
 
+	public boolean isInWhitelist(Block block) {
+		if(block == null)
+			return false;
+
+		return replaceWhitelist.contains(block);
+	}
+
+	public boolean isInWhitelist(Location location) {
+		if(location == null)
+			return false;
+
+		return isInWhitelist(location.getBlock());
+	}
+
+	public boolean isInWhitelist(World world, int x, int y, int z) {
+		try {
+			return isInWhitelist(world.getBlockAt(x, y, z));
+		}
+		catch(Exception e) {
+			return false;
+		}
+	}
+
 	public boolean place(World world, Random random, int x, int y, int z) {
 		location = new Location(world, x, y, z);
 		return generate(world, random, x, y, z);
@@ -440,10 +522,12 @@ public abstract class PandoraWorldGenerator
 
 			boolean blacklisted = isInBlacklist(block);
 
-			if(fastFail && blacklisted && !invertBlacklist)
+			if(fastFail && blacklisted && !invertBlacklist) {
 				return false;
-			else if(fastFail && !blacklisted && invertBlacklist)
+			}
+			else if(fastFail && !blacklisted && invertBlacklist) {
 				return false;
+			}
 
 			blocks.add(block.getState());
 		}
@@ -465,6 +549,8 @@ public abstract class PandoraWorldGenerator
 			setBlock(block, modifiedBlocks.get(block));
 		}
 
+		replaceWhitelist.clear();
+		modifiedBlocks.clear();
 		return true;
 	}
 

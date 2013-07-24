@@ -21,6 +21,7 @@ package org.pandora.trees;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
 	import org.bukkit.block.Block;
+	import org.bukkit.Location;
 	import org.bukkit.plugin.Plugin;
 	import org.bukkit.World;
 //* IMPORTS: PANDORA
@@ -30,13 +31,14 @@ package org.pandora.trees;
 
 public class TallRedwood extends PandoraWorldGenerator
 {
-	private boolean skipSolids = true;
-
-	public TallRedwood(Plugin plugin, boolean notifyOnBlockChanges, boolean invertBlacklist) {
+	public TallRedwood(Plugin plugin, boolean notifyOnBlockChanges) {
 		super(plugin, notifyOnBlockChanges, true);
 
 		addToBlacklist(0);
-		addToBlacklist(18);
+
+		for (byte i = ((byte) 0); i < ((byte) 16); i++) {
+			addToBlacklist(18, i);
+		}
 	}
 
 	public boolean generate(World world, Random random, int x, int y, int z) {
@@ -48,14 +50,15 @@ public class TallRedwood extends PandoraWorldGenerator
 		if (y < 1 || (y + maxHeight + 1) > 128)
 			return false;
 
-		int leafWidth;
-
 		int baseId = world.getBlockTypeIdAt(x, y - 1, z);
 
 		if ((baseId != 2 && baseId != 3) || y >= (128 - maxHeight - 1))
 			return false;
 
-		leafWidth = 0;
+		addToWhitelist(world.getBlockAt(x, y - 1, z));
+		addBlock(world.getBlockAt(x, y - 1, z), 3, (byte) 0);
+
+		int leafWidth = 0;
 
 		for (int cy = y + maxHeight; cy >= y + leafHeight; --cy)
 		{
@@ -66,10 +69,9 @@ public class TallRedwood extends PandoraWorldGenerator
 				for (int cz = z - leafWidth; cz <= z + leafWidth; ++cz)
 				{
 					int length = Math.abs(cz - z);
-
 					Block block = world.getBlockAt(cx, cy, cz);
 
-					if(!skipSolids && block.getType().isSolid())
+					if (!isInBlacklist(block))
 						continue;
 
 					if (width == length && width == leafWidth && leafWidth > 0)
@@ -93,18 +95,12 @@ public class TallRedwood extends PandoraWorldGenerator
 		{
 			Block block = world.getBlockAt(x, y + cy, z);
 
-			if (block.getTypeId() != 0 && block.getTypeId() != 18)
+			if (!isInBlacklist(block))
 				continue;
 
 			addBlock(block, 17, (byte) 1);
 		}
 
-		boolean placed = placeBlocks(true);
-
-		// TODO: Implement blacklist-free placement
-		if(placed)
-			world.getBlockAt(x, y - 1, z).setTypeId(3);
-
-		return placed;
+		return placeBlocks(true);
 	}
 }
