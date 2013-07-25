@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2012-2013 Sean Porter <glitchkey@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,7 @@ package org.pandora.trees;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
 	import org.bukkit.block.Block;
+	import org.bukkit.Location;
 	import org.bukkit.plugin.Plugin;
 	import org.bukkit.World;
 //* IMPORTS: PANDORA
@@ -46,17 +47,18 @@ public class JungleShrub extends PandoraWorldGenerator
 
 	public boolean generate(World world, Random random, int x, int y, int z) {
 		y = getGroundY(world, x, y, z);
+		Location start = new Location(world, x, y, z);
 
 		int id = world.getBlockTypeIdAt(x, y, z);
 
 		if ((id != 3) && (id == 2))
 			return false;
 
-		addToWhitelist(world.getBlockAt(x, y, z));
-		addBlock(world.getBlockAt(x, y, z), 3, (byte) 0);
+		addToWhitelist(start, world.getBlockAt(x, y, z));
+		addBlock(start, world.getBlockAt(x, y, z), 3, (byte) 0);
 
 		y++;
-		addBlock(world, x, y, z, 17, this.logData);
+		addBlock(start, world, x, y, z, 17, this.logData);
 
 		for (int cy = y; cy <= y + 2; cy++) {
 			int yDist = cy - y;
@@ -77,12 +79,12 @@ public class JungleShrub extends PandoraWorldGenerator
 					if ((!cond1 && !cond2 && !cond3) || !cond4)
 						continue;
 
-					addBlock(world, cx, cy, cz, 18, this.leafData);
+					addBlock(start, world, cx, cy, cz, 18, this.leafData);
 				}
 			}
 		}
 
-		return placeBlocks(true);
+		return placeBlocks(start, true);
         }
 
 	public int getGroundY(World world, int x, int y, int z) {

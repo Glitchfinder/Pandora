@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2012-2013 Sean Porter <glitchkey@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,7 @@ package org.pandora.trees;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
 	import org.bukkit.block.Block;
+	import org.bukkit.Location;
 	import org.bukkit.plugin.Plugin;
 	import org.bukkit.World;
 //* IMPORTS: PANDORA
@@ -47,22 +48,22 @@ public class BigJungleTree extends PandoraWorldGenerator
 		this.maxHeight = maxHeight;
 		this.logData = logData;
 		this.leafData = leafData;
+
+		addToBlacklist(0);
+
+		for (byte i = ((byte) 0); i < ((byte) 16); i++) {
+			addToBlacklist(18, i);
+		}
 	}
 
 	public boolean generate(World world, Random random, int x, int y, int z) {
 		int height = random.nextInt(3) + this.maxHeight;
+		Location start = new Location(world, x, y, z);
 
 		if ((y < 1) || (y + height + 1 > 256))
 			return false;
 
-		addToBlacklist(0);
-		addToBlacklist(18);
-
 		if (!skipSolids) {
-			addToBlacklist(2);
-			addToBlacklist(3);
-			addToBlacklist(17);
-			addToBlacklist(6);
 			for (int cy = y; cy <= y + 1 + height; cy++) {
 				byte radius = 2;
 
@@ -76,40 +77,31 @@ public class BigJungleTree extends PandoraWorldGenerator
 
 				for (int cx = x - radius; (cx <= x + radius); cx++) {
 					for (int cz = z - radius; (cz <= z + radius); cz++) {
-						if ((cy < 0) || (cy >= 256)) {
-							resetBlacklist();
+						if ((cy < 0) || (cy >= 256))
 							return false;
-						}
 
 						int id = world.getBlockTypeIdAt(cx, cy, cz);
-						if (!isInBlacklist(id)) {
-							resetBlacklist();
+						if (!isBlockedId(id))
 							return false;
-
-						}
 					}
 				}
 			}
 		}
 
-		resetBlacklist();
-		addToBlacklist(0);
-		addToBlacklist(18);
-
 		int id = world.getBlockTypeIdAt(x, y - 1, z);
 		if (((id != 2) && (id != 3)) || (y < 256 - height - 1))
 			return false;
 
-		addToWhitelist(world.getBlockAt(x, y - 1, z));
-		addToWhitelist(world.getBlockAt(x + 1, y - 1, z));
-		addToWhitelist(world.getBlockAt(x, y - 1, z + 1));
-		addToWhitelist(world.getBlockAt(x + 1, y - 1, z + 1));
-		addBlock(world.getBlockAt(x, y - 1, z), 3, (byte) 0);
-		addBlock(world.getBlockAt(x + 1, y - 1, z), 3, (byte) 0);
-		addBlock(world.getBlockAt(x, y - 1, z + 1), 3, (byte) 0);
-		addBlock(world.getBlockAt(x + 1, y - 1, z + 1), 3, (byte) 0);
+		addToWhitelist(start, world.getBlockAt(x, y - 1, z));
+		addToWhitelist(start, world.getBlockAt(x + 1, y - 1, z));
+		addToWhitelist(start, world.getBlockAt(x, y - 1, z + 1));
+		addToWhitelist(start, world.getBlockAt(x + 1, y - 1, z + 1));
+		addBlock(start, world.getBlockAt(x, y - 1, z), 3, (byte) 0);
+		addBlock(start, world.getBlockAt(x + 1, y - 1, z), 3, (byte) 0);
+		addBlock(start, world.getBlockAt(x, y - 1, z + 1), 3, (byte) 0);
+		addBlock(start, world.getBlockAt(x + 1, y - 1, z + 1), 3, (byte) 0);
 
-		generateLeaves(world, x, z, y + height, 2, random);
+		generateLeaves(start, world, x, z, y + height, 2, random);
 
 		int cy = y + height - 2 - random.nextInt(4);
 
@@ -119,64 +111,65 @@ public class BigJungleTree extends PandoraWorldGenerator
 			int cx = x + (int)(0.5F + Math.cos(f) * 4.0F);
 			int cz = z + (int)(0.5F + Math.sin(f) * 4.0F);
 
-			generateLeaves(world, cx, cz, cy, 0, random);
+			generateLeaves(start, world, cx, cz, cy, 0, random);
 
 			for (int depth = 0; depth < 5; depth++) {
 				cx = x + (int)(1.5F + Math.cos(f) * depth);
 				cz = z + (int)(1.5F + Math.sin(f) * depth);
 
 				int yLoc = cy - 3 + depth / 2;
-				addBlock(world, cx, yLoc, cz, 17, this.logData);
+				addBlock(start, world, cx, yLoc, cz, 17, this.logData);
 			}
 		}
 
 		for (int depth = 0; depth < height; depth++) {
 			int cDepth = y + depth;
 
-			addBlock(world, x, y + depth, z, 17, this.logData);
+			addBlock(start, world, x, y + depth, z, 17, this.logData);
 			if (depth > 0) {
 				if (chance(random) && (isEmpty(world, x - 1, cDepth, z)))
-					addBlock(world, x - 1, cDepth, z, 106, (byte) 8);
+					addBlock(start, world, x - 1, cDepth, z, 106, (byte) 8);
 
 				if (chance(random) && (isEmpty(world, x, cDepth, z - 1)))
-					addBlock(world, x, cDepth, z - 1, 106, (byte) 1);
+					addBlock(start, world, x, cDepth, z - 1, 106, (byte) 1);
 			}
 
 			if (depth >= height - 1)
 				continue;
 
-			addBlock(world, x + 1, cDepth, z, 17, this.logData);
+			addBlock(start, world, x + 1, cDepth, z, 17, this.logData);
 			if (depth > 0) {
 				if (chance(random) && (isEmpty(world, x + 2, cDepth, z)))
-					addBlock(world, x + 2, cDepth, z, 106, (byte) 2);
+					addBlock(start, world, x + 2, cDepth, z, 106, (byte) 2);
 
 				if (chance(random) && (isEmpty(world, x + 1, cDepth, z - 1)))
-					addBlock(world, x + 1, cDepth, z - 1, 106, (byte) 1);
+					addBlock(start, world, x + 1, cDepth, z - 1, 106, (byte) 1);
 			}
 
-			addBlock(world, x + 1, cDepth, z + 1, 17, this.logData);
+			addBlock(start, world, x + 1, cDepth, z + 1, 17, this.logData);
 			if (depth > 0) {
 				if (chance(random) && (isEmpty(world, x + 2, cDepth, z + 1)))
-					addBlock(world, x + 2, cDepth, z + 1, 106, (byte) 2);
+					addBlock(start, world, x + 2, cDepth, z + 1, 106, (byte) 2);
 
 				if (chance(random) && (isEmpty(world, x + 1, cDepth, z + 2)))
-					addBlock(world, x + 1, cDepth, z + 2, 106, (byte) 4);
+					addBlock(start, world, x + 1, cDepth, z + 2, 106, (byte) 4);
 			}
 
-			addBlock(world, x, cDepth, z + 1, 17, this.logData);
+			addBlock(start, world, x, cDepth, z + 1, 17, this.logData);
 			if (depth > 0) {
 				if (chance(random) && (isEmpty(world, x - 1, cDepth, z + 1)))
-					addBlock(world, x - 1, cDepth, z + 1, 106, (byte) 8);
+					addBlock(start, world, x - 1, cDepth, z + 1, 106, (byte) 8);
 
 				if (chance(random) && (isEmpty(world, x, cDepth, z + 2)))
-					addBlock(world, x, cDepth, z + 2, 106, (byte) 4);
+					addBlock(start, world, x, cDepth, z + 2, 106, (byte) 4);
 			}
 		}
 
-		return placeBlocks(true);
+		return placeBlocks(start, true);
         }
 
-	private void generateLeaves(World world, int x, int z, int y, int radius, Random random)
+	private void generateLeaves(Location start, World world, int x, int z, int y, int radius,
+		Random random)
 	{
 		byte maxRadius = 2;
 
@@ -209,7 +202,7 @@ public class BigJungleTree extends PandoraWorldGenerator
 					if (cond2 && (cond3 || (cond4 && cond5)))
 						continue;
 
-					addBlock(world, cx, cy, cz, 18, this.leafData);
+					addBlock(start, world, cx, cy, cz, 18, this.leafData);
 				}
 			}
 		}
@@ -223,10 +216,10 @@ public class BigJungleTree extends PandoraWorldGenerator
 		return (world.getBlockTypeIdAt(x, y, z) == 0);
 	}
 
-	public void resetBlacklist() {
-		removeFromBlacklist(2);
-		removeFromBlacklist(3);
-		removeFromBlacklist(17);
-		removeFromBlacklist(6);
+	public boolean isBlockedId(int id) {
+		if (id == 2 || id == 3 || id == 17 || id == 6)
+			return true;
+
+		return false;
 	}
 }
