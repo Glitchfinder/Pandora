@@ -19,7 +19,9 @@ package org.pandora;
 
 //* IMPORTS: JDK/JRE
 	import java.util.ArrayList;
+	import java.util.HashMap;
 	import java.util.List;
+	import java.util.Map;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
 	import org.bukkit.generator.BlockPopulator;
@@ -37,23 +39,14 @@ public class PandoraGenerator extends ChunkGenerator
 {
 	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
-	private PandoraBiome lastGen, defaultGen, tempGen;
-	private SimplexNoiseGenerator noise;
-	private Location center, currentEdge, tempEdge;
-	private int lastX, lastZ, xPos, zPos, currentX, currentY, currentZ, xs, zs;
-	private int cXPos, cZPos, index, edgeXPos, edgeZPos, edgeMax, octaves;
-	private double temperature, humidity, tempRange, humidityRange;
-	private double range, scale, amplitude, frequency, cnoise;
-	private byte byteId;
-	private byte[] depTempColumn, depTempChunk, tempColumn;
-	private byte[][] tempChunk;
-	private short shortId;
-	private short[] extTempColumn;
-	private short[][] extTempChunk;
+	private Map<World, SimplexNoiseGenerator> noises, flippedNoises;
+	private PandoraBiome defaultGen;
+	private int octaves;
+	private double range, scale, amplitude, frequency;
 	private boolean useCustomMetrics = false;
 
 	public PandoraGenerator addBiome(PandoraBiome biome) {
-		if(biome == null)
+		if (biome == null)
 			return this;
 
 		generators.add(biome);
@@ -61,136 +54,152 @@ public class PandoraGenerator extends ChunkGenerator
 	}
 
 	public PandoraGenerator addPopulator(BlockPopulator populator) {
-		if(populator == null)
+		if (populator == null)
 			return this;
 
 		populators.add(populator);
 		return this;
 	}
 
-	public boolean canSpawn(World world, int x, int z) {
-		getGenerator(world, x, z);
+	public PandoraGenerator addPopulator(PandoraPopulator populator) {
+		if (populator == null)
+			return this;
 
-		if(lastGen == null)
+		populators.add((BlockPopulator) populator);
+		return this;
+	}
+
+	public boolean canSpawn(World world, int x, int z) {
+		PandoraBiome biome = getGenerator(world, x, z);
+
+		if (biome == null)
 			return false;
 
-		lastGen.synchronize(world);
-		return lastGen.canSpawn(x, z);
+		return biome.canSpawn(world, x, z);
 	}
 
 	@Deprecated
 	public byte[] generate(World world, Random rand, int x, int z) {
-		depTempChunk = new byte[32768];
-		xPos = x * 16;
-		zPos = z * 16;
+		byte[] chunk = new byte[32768];
+		int xPos = x << 4;
+		int zPos = z << 4;
 
-		for(currentX = 0; currentX < 16; currentX++) {
-			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++) {
-				cZPos = currentZ + zPos;
-				getGenerator(world, cXPos, cZPos);
+		for (int cx = 0; cx < 16; cx++) {
+			int cxPos = cx + xPos;
 
-				if(lastGen == null)
+			for (int cz = 0; cz < 16; cz++) {
+				int czPos = cz + zPos;
+				PandoraBiome biome = getGenerator(world, cxPos, czPos);
+
+				if (biome == null)
 					continue;
 
-				lastGen.synchronize(world);
-				depTempColumn = lastGen.generate(rand, cXPos, cZPos);
+				byte[] column = biome.generate(world, rand, cxPos, czPos);
 
-				if(depTempColumn == null || depTempColumn.length < 128)
-					depTempColumn = new byte[128];
+				if (column == null || column.length < 128)
+					column = new byte[128];
 
-				index = ((currentX * 16) + currentZ) * 128;
+				int index = ((cx << 4) + cz) << 7;
 
-				if(index < 0)
-					index = 0;
-				if((index + 128) > depTempChunk.length)
+				if ((index + 128) > chunk.length)
 					continue;
 
-				System.arraycopy(depTempColumn, 0, depTempChunk, index, 128);
+				System.arraycopy(column, 0, chunk, index, 128);
 			}
 		}
 
-		return depTempChunk;
+		return chunk;
 	}
 
-	public byte[][] generateBlockSections(World world, Random rand, int x, int z, BiomeGrid biomes)
+	public byte[][] generateBlockSections(World world, Random rand, int x, int z,
+		BiomeGrid biomes)
 	{
-		tempChunk = new byte[world.getMaxHeight() / 16][];
-		xPos = x * 16;
-		zPos = z * 16;
+		byte[][] chunk = new byte[world.getMaxHeight() / 16][];
+		int xPos = x << 4;
+		int zPos = z << 4;
 
-		for(currentX = 0; currentX < 16; currentX++) {
-			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++) {
-				cZPos = currentZ + zPos;
-				getGenerator(world, cXPos, cZPos);
+		for (int cx = 0; cx < 16; cx++) {
+			int cxPos = cx + xPos;
 
-				if(lastGen == null)
+			for (int cz = 0; cz < 16; cz++) {
+				int czPos = cz + zPos;
+				PandoraBiome biome = getGenerator(world, cxPos, czPos);
+
+				if (biome == null)
 					return null;
 
-				lastGen.synchronize(world);
-				tempColumn = lastGen.generateSections(rand, cXPos, cZPos, biomes);
+				byte[] column;
+				column = biome.generateSections(world, rand, cxPos, czPos, biomes);
 
-				if(tempColumn == null || tempColumn.length < world.getMaxHeight())
+				if (column == null || column.length < world.getMaxHeight())
 					return null;
 
-				for(currentY = 0; currentY < world.getMaxHeight(); currentY++) {
-					byteId = tempColumn[currentY];
-					setBlock(tempChunk, currentX, currentY, currentZ, byteId);
+				for (int cy = 0; cy < world.getMaxHeight(); cy++) {
+					byte id = column[cy];
+					setBlock(chunk, cx, cy, cz, id);
 				}
 			}
 		}
 
-		return tempChunk;
+		return chunk;
 	}
 
-	public short[][] generateExtBlockSections(World world, Random rand, int x, int z, BiomeGrid biomes)
+	public short[][] generateExtBlockSections(World world, Random rand, int x, int z,
+		BiomeGrid biomes)
 	{
-		extTempChunk = new short[world.getMaxHeight() / 16][];
-		xPos = x * 16;
-		zPos = z * 16;
+		short[][] chunk = new short[world.getMaxHeight() / 16][];
+		int xPos = x << 4;
+		int zPos = z << 4;
 
-		for(currentX = 0; currentX < 16; currentX++) {
-			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++) {
-				cZPos = currentZ + zPos;
-				getGenerator(world, cXPos, cZPos);
+		for (int cx = 0; cx < 16; cx++) {
+			int cxPos = cx + xPos;
 
-				if(lastGen == null)
+			for (int cz = 0; cz < 16; cz++) {
+				int czPos = cz + zPos;
+				PandoraBiome biome = getGenerator(world, cxPos, czPos);
+
+				if (biome == null)
 					return null;
 
-				lastGen.synchronize(world);
-				extTempColumn = lastGen.generateExtSections(rand, cXPos, cZPos, biomes);
+				short[] column = biome.generateExtSections(world, rand, cxPos,
+					czPos, biomes);
 
-				if(extTempColumn == null || extTempColumn.length < world.getMaxHeight())
+				if (column == null || column.length < world.getMaxHeight())
 					return null;
 
-				for(currentY = 0; currentY < world.getMaxHeight(); currentY++) {
-					shortId = extTempColumn[currentY];
-					setBlock(extTempChunk, currentX, currentY, currentZ, shortId);
+				for (int cy = 0; cy < world.getMaxHeight(); cy++) {
+					short id = column[cy];
+					setBlock(chunk, cx, cy, cz, id);
 				}
 			}
 		}
 
-		return extTempChunk;
+		return chunk;
 	}
 
 	public double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
-		if(world == null)
+		if (world == null)
 			return 0D;
-
-		if(!useCustomMetrics)
+		else if (!useCustomMetrics)
 			return 0D;
+		else if (noises == null)
+			noises = new HashMap<World, SimplexNoiseGenerator>();
 
-		if(!invertSeed)
-			this.noise = new SimplexNoiseGenerator(world.getSeed());
+		if (!invertSeed && !noises.containsKey(world))
+			noises.put(world, (new SimplexNoiseGenerator(world.getSeed())));
+		else if (invertSeed && !flippedNoises.containsKey(world))
+			flippedNoises.put(world, (new SimplexNoiseGenerator(~(world.getSeed()))));
+
+		SimplexNoiseGenerator noise;
+
+		if (!invertSeed)
+			noise = noises.get(world);
 		else
-			this.noise = new SimplexNoiseGenerator(~(world.getSeed()));
+			noise = flippedNoises.get(world);
 
-		range /= 2D;
-		xs = (int) Math.round(x / scale);
-		zs = (int) Math.round(z / scale);
-		cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
+		int xs = (int) Math.round(((double) x) / scale);
+		int zs = (int) Math.round(((double) z) / scale);
+		double cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
 
 		return ((range * cnoise) + range);
 	}
@@ -207,43 +216,46 @@ public class PandoraGenerator extends ChunkGenerator
 		return null;
 	}
 
-	private void getGenerator(World world, int x, int z) {
-		if((x == lastX && z == lastZ && lastGen != null) || world == null)
-			return;
+	private PandoraBiome getGenerator(World world, int x, int z) {
+		if (world == null)
+			return defaultGen;
 
-		temperature = getTemperature(world, x, z);
-		humidity = getHumidity(world, x, z);
+		PandoraBiome generator = defaultGen;
+		double temperature = getTemperature(world, x, z);
+		double humidity = getHumidity(world, x, z);
+		double tempRange = generator.maxTemperature - generator.minTemperature;
+		double humidityRange = generator.maxHumidity - generator.minHumidity;
 
-		lastGen = defaultGen;
-
-		for(PandoraBiome currentGen : generators) {
-			if(currentGen.minTemperature > temperature)
+		for (PandoraBiome cGen : generators) {
+			if (cGen.minTemperature > temperature)
 				continue;
-			else if(currentGen.maxTemperature < temperature)
+			else if (cGen.maxTemperature < temperature)
 				continue;
-			else if(currentGen.minHumidity > humidity)
+			else if (cGen.minHumidity > humidity)
 				continue;
-			else if(currentGen.maxHumidity < humidity)
+			else if(cGen.maxHumidity < humidity)
 				continue;
-			else if(lastGen == defaultGen) {
-				lastGen = currentGen;
-				tempRange = lastGen.maxTemperature - lastGen.minTemperature;
-				humidityRange = lastGen.maxHumidity - lastGen.minHumidity;
+			else if (generator == defaultGen) {
+				generator = cGen;
+				tempRange = generator.maxTemperature - generator.minTemperature;
+				humidityRange = generator.maxHumidity - generator.minHumidity;
 				continue;
 			}
-			else if(tempRange <= (currentGen.maxTemperature - currentGen.minTemperature))
+			else if (tempRange <= (cGen.maxTemperature - cGen.minTemperature))
 				continue;
-			else if(humidityRange <= (currentGen.maxHumidity - currentGen.minHumidity))
+			else if (humidityRange <= (cGen.maxHumidity - cGen.minHumidity))
 				continue;
 
-			lastGen = currentGen;
-			tempRange = lastGen.maxTemperature - lastGen.minTemperature;
-			humidityRange = lastGen.maxHumidity - lastGen.minHumidity;
+			generator = cGen;
+			tempRange = generator.maxTemperature - generator.minTemperature;
+			humidityRange = generator.maxHumidity - generator.minHumidity;
 		}
+
+		return generator;
 	}
 
 	public double getHumidity(World world, int x, int z) {
-		if(useCustomMetrics)
+		if (useCustomMetrics)
 			return getBiomeNoise(world, x, z, true);
 
 		return world.getHumidity(x, z);
@@ -253,51 +265,53 @@ public class PandoraGenerator extends ChunkGenerator
 		return getNearestEdge(world, x, z, period, count, false);
 	}
 
-	public Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
-		if(world == null)
+	public Location getNearestEdge(World world, int x, int z, int period, int count,
+		boolean inner)
+	{
+		if (world == null)
 			return null;
 
-		getGenerator(world, x, z);
+		PandoraBiome biome = getGenerator(world, x, z);
 
-		if(lastGen == null)
+		if (biome == null)
 			return null;
 
-		tempGen = lastGen;
-		edgeMax = period * count;
+		int edgeMax = period * count;
+		int xMax = (x + edgeMax);
+		int zMax = (z + edgeMax);
 
-		currentEdge = null;
-		tempEdge = null;
+		Location cEdge = null;
+		Location tempEdge = null;
 
-		center = new Location(world, (double) x, 0D, (double) z);
+		Location center = new Location(world, x, 0D, z);
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
-				getGenerator(world, edgeXPos, edgeZPos);
+		for (int cx = (x - edgeMax); cx <= xMax; cx += period) {
+			for (int cz = (z - edgeMax); cz <= zMax; cz += period) {
+				PandoraBiome cGen = getGenerator(world, cx, cz);
 
-				if(lastGen != tempGen && currentEdge == null) {
-					currentEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+				if (cGen != biome && cEdge == null) {
+					cEdge = new Location(world, cx, 0D, cz);
 					continue;
 				}
-				else if(lastGen != tempGen) {
-					tempEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+				else if (cGen != biome) {
+					tempEdge = new Location(world, cx, 0D, cz);
 
-					if(center.distance(currentEdge) > center.distance(tempEdge))
-						currentEdge = tempEdge;
+					if (center.distance(cEdge) > center.distance(tempEdge))
+						cEdge = tempEdge;
 				}
 			}
 		}
 
-		if(currentEdge == null) {
+		if (cEdge == null)
 			return null;
-		}
-		else if(!inner) {
-			edgeXPos = currentEdge.getBlockX();
-			edgeZPos = currentEdge.getBlockZ();
+		else if (!inner) {
+			int edgeXPos = cEdge.getBlockX();
+			int edgeZPos = cEdge.getBlockZ();
 
 			return getNearestEdge(world, edgeXPos, edgeZPos, 1, period, true);
 		}
 
-		return currentEdge;
+		return cEdge;
 	}
 
 	public int getNearestEdgeBlockDistance(World world, int x, int z, int period, int count) {
@@ -305,36 +319,39 @@ public class PandoraGenerator extends ChunkGenerator
 	}
 
 	public double getNearestEdgeDistance(World world, int x, int z, int period, int count) {
-		if(getNearestEdge(world, x, z, period, count) == null)
+		Location currentEdge = getNearestEdge(world, x, z, period, count);
+
+		if (currentEdge == null)
 			return -1D;
 
-		return center.distance(currentEdge);
+		return (new Location(world, x, 0D, z)).distance(currentEdge);
 	}
 
 	public double getTemperature(World world, int x, int z) {
-		if(useCustomMetrics)
+		if (useCustomMetrics)
 			return getBiomeNoise(world, x, z, false);
 
 		return world.getTemperature(x, z);
 	}
 
 	public boolean isNearEdge(World world, int x, int z, int period, int count) {
-		if(world == null)
+		if (world == null)
 			return false;
 
-		getGenerator(world, x, z);
+		PandoraBiome biome = getGenerator(world, x, z);
 
-		if(lastGen == null)
+		if (biome == null)
 			return false;
 
-		tempGen = lastGen;
-		edgeMax = period * count;
+		int edgeMax = period * count;
+		int xMax = (x + edgeMax);
+		int zMax = (z + edgeMax);
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
-				getGenerator(world, edgeXPos, edgeZPos);
+		for (int cx = (x - edgeMax); cx <= xMax; cx += period) {
+			for (int cz = (z - edgeMax); cz <= zMax; cz += period) {
+				PandoraBiome cBiome = getGenerator(world, cx, cz);
 
-				if(lastGen != tempGen)
+				if (cBiome != biome)
 					return true;
 			}
 		}
@@ -347,21 +364,21 @@ public class PandoraGenerator extends ChunkGenerator
 	}
 
 	private void setBlock(byte[][] result, int x, int y, int z, byte id) {
-		if(result[y >> 4] == null)
+		if (result[y >> 4] == null)
 			result[y >> 4] = new byte[4096];
 
 		result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = id;
 	}
 
 	private void setBlock(short[][] result, int x, int y, int z, short id) {
-		if(result[y >> 4] == null)
+		if (result[y >> 4] == null)
 			result[y >> 4] = new short[4096];
 
 		result[y >> 4][((y & 0xF) << 8) | (z << 4) | x] = id;
 	}
 
 	public PandoraGenerator setDefaultBiome(PandoraBiome biome) {
-		if(biome == null)
+		if (biome == null)
 			return this;
 
 		defaultGen = biome;
@@ -372,9 +389,11 @@ public class PandoraGenerator extends ChunkGenerator
 		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 15D);
 	}
 	
-	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale, int octaves, double amplitude, double frequency) {
+	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale,
+		int octaves, double amplitude, double frequency)
+	{
 		this.useCustomMetrics = setting;
-		this.range = range;
+		this.range = range / 2D;
 		this.scale = scale;
 		this.octaves = octaves;
 		this.amplitude = amplitude;
