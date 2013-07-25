@@ -204,12 +204,12 @@ public class PandoraGenerator extends ChunkGenerator
 		return ((range * cnoise) + range);
 	}
 
-	public List<PandoraBiome> getDefaultBiomes(World world) {
+	public List<PandoraBiome> getBiomes(World world) {
 		return generators;
 	}
 
-	public List<BlockPopulator> getDefaultPopulators(World world) {
-		return populators;
+	public PandoraBiome getDefaultBiome(World world) {
+		return defaultGen;
 	}
 
 	public Location getFixedSpawnLocation(World world, Random rand) {
@@ -325,6 +325,10 @@ public class PandoraGenerator extends ChunkGenerator
 			return -1D;
 
 		return (new Location(world, x, 0D, z)).distance(currentEdge);
+	}
+
+	public List<BlockPopulator> getPopulators(World world) {
+		return populators;
 	}
 
 	public double getTemperature(World world, int x, int z) {

@@ -78,8 +78,12 @@ public class PandoraPopulator extends BlockPopulator
 		return ((range * cnoise) + range);
 	}
 
-	public List<PandoraBiomePopulator> getDefaultBiomes(World world) {
+	public List<PandoraBiomePopulator> getBiomes(World world) {
 		return populators;
+	}
+
+	public PandoraBiomePopulator getDefaultBiome(World world) {
+		return defaultPop;
 	}
 
 	public double getHumidity(World world, int x, int z) {
