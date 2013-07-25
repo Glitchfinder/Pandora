@@ -19,7 +19,9 @@ package org.pandora;
 
 //* IMPORTS: JDK/JRE
 	import java.util.ArrayList;
+	import java.util.HashMap;
 	import java.util.List;
+	import java.util.Map;
 	import java.util.Random;
 //* IMPORTS: BUKKIT
 	import org.bukkit.Chunk;
@@ -35,17 +37,14 @@ package org.pandora;
 public class PandoraPopulator extends BlockPopulator
 {
 	private List<PandoraBiomePopulator> populators = new ArrayList<PandoraBiomePopulator>();
-	private PandoraBiomePopulator lastPop, defaultPop, tempPop;
-	private SimplexNoiseGenerator noise;
-	private Location center, currentEdge, tempEdge;
-	private int lastX, lastZ, xPos, zPos, currentX, currentZ, cXPos, cZPos, xs, zs;
-	private int edgeMax, edgeXPos, edgeZPos, octaves;
-	private double temperature, humidity, tempRange, humidityRange;
-	private double range, scale, amplitude, frequency, cnoise;
+	private Map<World, SimplexNoiseGenerator> noises, flippedNoises;
+	private PandoraBiomePopulator defaultPop;
+	private int octaves;
+	private double range, scale, amplitude, frequency;
 	private boolean useCustomMetrics = false;
 
 	public PandoraPopulator addBiome(PandoraBiomePopulator biome) {
-		if(biome == null)
+		if (biome == null)
 			return this;
 
 		populators.add(biome);
@@ -53,21 +52,28 @@ public class PandoraPopulator extends BlockPopulator
 	}
 
 	public double getBiomeNoise(World world, int x, int z, boolean invertSeed) {
-		if(world == null)
+		if (world == null)
 			return 0D;
-
-		if(!useCustomMetrics)
+		else if (!useCustomMetrics)
 			return 0D;
+		else if (noises == null)
+			noises = new HashMap<World, SimplexNoiseGenerator>();
 
-		if(!invertSeed)
-			this.noise = new SimplexNoiseGenerator(world.getSeed());
+		if (!invertSeed && !noises.containsKey(world))
+			noises.put(world, (new SimplexNoiseGenerator(world.getSeed())));
+		else if (invertSeed && !flippedNoises.containsKey(world))
+			flippedNoises.put(world, (new SimplexNoiseGenerator(~(world.getSeed()))));
+
+		SimplexNoiseGenerator noise;
+
+		if (!invertSeed)
+			noise = noises.get(world);
 		else
-			this.noise = new SimplexNoiseGenerator(~(world.getSeed()));
+			noise = flippedNoises.get(world);
 
-		range /= 2D;
-		xs = (int) Math.round(x / scale);
-		zs = (int) Math.round(z / scale);
-		cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
+		int xs = (int) Math.round(((double) x) / scale);
+		int zs = (int) Math.round(((double) z) / scale);
+		double cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
 
 		return ((range * cnoise) + range);
 	}
@@ -77,7 +83,7 @@ public class PandoraPopulator extends BlockPopulator
 	}
 
 	public double getHumidity(World world, int x, int z) {
-		if(useCustomMetrics)
+		if (useCustomMetrics)
 			return getBiomeNoise(world, x, z, true);
 
 		return world.getHumidity(x, z);
@@ -87,51 +93,52 @@ public class PandoraPopulator extends BlockPopulator
 		return getNearestEdge(world, x, z, period, count, false);
 	}
 
-	public Location getNearestEdge(World world, int x, int z, int period, int count, boolean inner) {
-		if(world == null)
+	public Location getNearestEdge(World world, int x, int z, int period, int count,
+		boolean inner)
+	{
+		if (world == null)
 			return null;
 
-		getPopulator(world, x, z);
+		PandoraBiomePopulator pop = getPopulator(world, x, z);
 
-		if(lastPop == null)
+		if (pop == null)
 			return null;
 
-		tempPop = lastPop;
-		edgeMax = period * count;
+		int edgeMax = period * count;
+		int xMax = (x + edgeMax);
+		int zMax = (z + edgeMax);
 
-		currentEdge = null;
-		tempEdge = null;
+		Location cEdge = null;
+		Location tempEdge = null;
+		Location center = new Location(world, x, 0D, z);
 
-		center = new Location(world, (double) x, 0D, (double) z);
+		for (int cx = (x - edgeMax); cx <= xMax; cx += period) {
+			for (int cz = (z - edgeMax); cz <= zMax; cz += period) {
+				PandoraBiomePopulator cPop = getPopulator(world, cx, cz);
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
-				getPopulator(world, edgeXPos, edgeZPos);
-
-				if(lastPop != tempPop && currentEdge == null) {
-					currentEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+				if (cPop != pop && cEdge == null) {
+					cEdge = new Location(world, cx, 0D, cz);
 					continue;
 				}
-				else if(lastPop != tempPop) {
-					tempEdge = new Location(world, (double) edgeXPos, 0D, (double) edgeZPos);
+				else if (cPop != pop) {
+					tempEdge = new Location(world, cx, 0D, cz);
 
-					if(center.distance(currentEdge) > center.distance(tempEdge))
-						currentEdge = tempEdge;
+					if (center.distance(cEdge) > center.distance(tempEdge))
+						cEdge = tempEdge;
 				}
 			}
 		}
 
-		if(currentEdge == null) {
+		if (cEdge == null)
 			return null;
-		}
-		else if(!inner) {
-			edgeXPos = currentEdge.getBlockX();
-			edgeZPos = currentEdge.getBlockZ();
+		else if (!inner) {
+			int cx = cEdge.getBlockX();
+			int cz = cEdge.getBlockZ();
 
-			return getNearestEdge(world, edgeXPos, edgeZPos, 1, period, true);
+			return getNearestEdge(world, cx, cz, 1, period, true);
 		}
 
-		return currentEdge;
+		return cEdge;
 	}
 
 	public int getNearestEdgeBlockDistance(World world, int x, int z, int period, int count) {
@@ -139,72 +146,74 @@ public class PandoraPopulator extends BlockPopulator
 	}
 
 	public double getNearestEdgeDistance(World world, int x, int z, int period, int count) {
-		if(getNearestEdge(world, x, z, period, count) == null)
+		Location edge = getNearestEdge(world, x, z, period, count);
+		if (edge == null)
 			return -1D;
 
-		return center.distance(currentEdge);
+		return (new Location(world, x, 0D, z)).distance(edge);
 	}
 
-	private void getPopulator(World world, int x, int z) {
-		if((x == lastX && z == lastZ && lastPop != null) || world == null)
-			return;
+	private PandoraBiomePopulator getPopulator(World world, int x, int z) {
+		if (world == null)
+			return null;
 
-		temperature = getTemperature(world, x, z);
-		humidity = getHumidity(world, x, z);
+		PandoraBiomePopulator populator = defaultPop;
+		double temperature = getTemperature(world, x, z);
+		double humidity = getHumidity(world, x, z);
+		double tempRange = populator.maxTemperature - populator.minTemperature;
+		double humidityRange = populator.maxHumidity - populator.minHumidity;
 
-
-		lastPop = defaultPop;
-
-		for(PandoraBiomePopulator currentPop : populators) {
-			if(currentPop.minTemperature > temperature)
+		for (PandoraBiomePopulator cPop : populators) {
+			if (cPop.minTemperature > temperature)
 				continue;
-			else if(currentPop.maxTemperature < temperature)
+			else if (cPop.maxTemperature < temperature)
 				continue;
-			else if(currentPop.minHumidity > humidity)
+			else if (cPop.minHumidity > humidity)
 				continue;
-			else if(currentPop.maxHumidity < humidity)
+			else if (cPop.maxHumidity < humidity)
 				continue;
-			else if(lastPop == defaultPop) {
-				lastPop = currentPop;
-				tempRange = lastPop.maxTemperature - lastPop.minTemperature;
-				humidityRange = lastPop.maxHumidity - lastPop.minHumidity;
+			else if (populator == defaultPop) {
+				populator = cPop;
+				tempRange = populator.maxTemperature - populator.minTemperature;
+				humidityRange = populator.maxHumidity - populator.minHumidity;
 				continue;
 			}
-			else if(tempRange <= (currentPop.maxTemperature - currentPop.minTemperature))
+			else if (tempRange <= (cPop.maxTemperature - cPop.minTemperature))
 				continue;
-			else if(humidityRange <= (currentPop.maxHumidity - currentPop.minHumidity))
+			else if (humidityRange <= (cPop.maxHumidity - cPop.minHumidity))
 				continue;
 
-			lastPop = currentPop;
-			tempRange = lastPop.maxTemperature - lastPop.minTemperature;
-			humidityRange = lastPop.maxHumidity - lastPop.minHumidity;
+			populator = cPop;
+			tempRange = populator.maxTemperature - populator.minTemperature;
+			humidityRange = populator.maxHumidity - populator.minHumidity;
 		}
+
+		return populator;
 	}
 
 	public double getTemperature(World world, int x, int z) {
-		if(useCustomMetrics)
+		if (useCustomMetrics)
 			return getBiomeNoise(world, x, z, false);
 
 		return world.getTemperature(x, z);
 	}
 
 	public boolean isNearEdge(World world, int x, int z, int period, int count) {
-		if(world == null)
+		if (world == null)
 			return false;
 
-		getPopulator(world, x, z);
+		PandoraBiomePopulator pop = getPopulator(world, x, z);
 
-		if(lastPop == null)
+		if (pop == null)
 			return false;
 
-		tempPop = lastPop;
-		edgeMax = period * count;
+		int edgeMax = period * count;
+		int xMax = (x + edgeMax);
+		int zMax = (z + edgeMax);
 
-		for(edgeXPos = (x - edgeMax); edgeXPos <= (x + edgeMax); edgeXPos += period) {
-			for(edgeZPos = (z - edgeMax); edgeZPos <= (z + edgeMax); edgeZPos += period) {
-				getPopulator(world, edgeXPos, edgeZPos);
-
-				if(lastPop != tempPop)
+		for (int cx = (x - edgeMax); cx <= xMax; cx += period) {
+			for (int cz = (z - edgeMax); cz <= zMax; cz += period) {
+				if (getPopulator(world, cx, cz) != pop)
 					return true;
 			}
 		}
@@ -217,25 +226,25 @@ public class PandoraPopulator extends BlockPopulator
 	}
 
 	public void populate(World world, Random random, Chunk source) {
-		xPos = source.getX() * 16;
-		zPos = source.getZ() * 16;
+		int xPos = source.getX() << 4;
+		int zPos = source.getZ() << 4;
 
-		for(currentX = 0; currentX < 16; currentX++) {
-			cXPos = currentX + xPos;
-			for(currentZ = 0; currentZ < 16; currentZ++) {
-				cZPos = currentZ + zPos;
-				getPopulator(world, cXPos, cZPos);
+		for (int cx = 0; cx < 16; cx++) {
+			int cxPos = cx + xPos;
+			for (int cz = 0; cz < 16; cz++) {
+				int czPos = cz + zPos;
+				PandoraBiomePopulator pop = getPopulator(world, cxPos, czPos);
 
-				if(lastPop == null)
+				if (pop == null)
 					return;
 
-				lastPop.populate(world, random, source, cXPos, cZPos);
+				pop.populate(world, random, source, cxPos, czPos);
 			}
 		}
 	}
 
 	public PandoraPopulator setDefaultBiome(PandoraBiomePopulator biome) {
-		if(biome == null)
+		if (biome == null)
 			return this;
 
 		defaultPop = biome;
@@ -246,9 +255,11 @@ public class PandoraPopulator extends BlockPopulator
 		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 15D);
 	}
 	
-	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale, int octaves, double amplitude, double frequency) {
+	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale,
+		int octaves, double amplitude, double frequency)
+	{
 		this.useCustomMetrics = setting;
-		this.range = range;
+		this.range = range / 2D;
 		this.scale = scale;
 		this.octaves = octaves;
 		this.amplitude = amplitude;

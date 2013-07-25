@@ -349,9 +349,7 @@ public class PandoraGenerator extends ChunkGenerator
 
 		for (int cx = (x - edgeMax); cx <= xMax; cx += period) {
 			for (int cz = (z - edgeMax); cz <= zMax; cz += period) {
-				PandoraBiome cBiome = getGenerator(world, cx, cz);
-
-				if (cBiome != biome)
+				if (getGenerator(world, cx, cz) != biome)
 					return true;
 			}
 		}
