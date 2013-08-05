@@ -1052,8 +1052,8 @@ public abstract class PandoraWorldGenerator
 
 			boolean blacklisted = isInBlacklist(block);
 
-			if (blacklisted)
-				blacklisted = isInWhitelist(start, block) ? invertBlacklist : true;
+			if (isInWhitelist(start, block))
+				blacklisted = invertBlacklist;
 
 			if(fastFail && blacklisted && !invertBlacklist) {
 				return false;
