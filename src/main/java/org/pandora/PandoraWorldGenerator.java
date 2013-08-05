@@ -1034,7 +1034,7 @@ public abstract class PandoraWorldGenerator
 	}
 
 	public boolean placeBlocks(Location start, boolean fastFail) {
-		if (plugin == null || start == null)
+		if (plugin == null || start == null || modifiedBlocks == null)
 			return false;
 		else if (!modifiedBlocks.containsKey(start))
 			return false;
