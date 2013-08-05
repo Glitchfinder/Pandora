@@ -212,6 +212,10 @@ public class PandoraGenerator extends ChunkGenerator
 		return defaultGen;
 	}
 
+	public List<BlockPopulator> getDefaultPopulators(World world) {
+		return populators;
+	}
+
 	public Location getFixedSpawnLocation(World world, Random rand) {
 		return null;
 	}

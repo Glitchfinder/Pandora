@@ -113,6 +113,10 @@ public abstract class PandoraBiome
 		return (int) ((range * cnoise) + range);
 	}
 
+	public final SimplexNoiseGenerator getNoiseGenerator(World world) {
+		return noises.get(world);
+	}
+
 	public double getTemperature(World world, int x, int z) {
 		if (!isPandoraWorld(world))
 			return world.getTemperature(x, z);
