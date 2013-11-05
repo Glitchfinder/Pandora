@@ -56,8 +56,11 @@ public class PandoraPopulator extends BlockPopulator
 			return 0D;
 		else if (!useCustomMetrics)
 			return 0D;
-		else if (noises == null)
+
+		if (noises == null)
 			noises = new HashMap<World, SimplexNoiseGenerator>();
+		if (flippedNoises == null)
+			flippedNoises = new HashMap<World, SimplexNoiseGenerator>();
 
 		if (!invertSeed && !noises.containsKey(world))
 			noises.put(world, (new SimplexNoiseGenerator(world.getSeed())));
@@ -75,7 +78,7 @@ public class PandoraPopulator extends BlockPopulator
 		int zs = (int) Math.round(((double) z) / scale);
 		double cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
 
-		return ((range * cnoise) + range);
+		return ((range * (cnoise / amplitude)) + range);
 	}
 
 	public List<PandoraBiomePopulator> getBiomes(World world) {
@@ -159,7 +162,7 @@ public class PandoraPopulator extends BlockPopulator
 
 	private PandoraBiomePopulator getPopulator(World world, int x, int z) {
 		if (world == null)
-			return null;
+			return defaultPop;
 
 		PandoraBiomePopulator populator = defaultPop;
 		double temperature = getTemperature(world, x, z);

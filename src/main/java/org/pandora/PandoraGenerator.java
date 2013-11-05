@@ -182,8 +182,11 @@ public class PandoraGenerator extends ChunkGenerator
 			return 0D;
 		else if (!useCustomMetrics)
 			return 0D;
-		else if (noises == null)
+
+		if (noises == null)
 			noises = new HashMap<World, SimplexNoiseGenerator>();
+		if (flippedNoises == null)
+			flippedNoises = new HashMap<World, SimplexNoiseGenerator>();
 
 		if (!invertSeed && !noises.containsKey(world))
 			noises.put(world, (new SimplexNoiseGenerator(world.getSeed())));
@@ -201,7 +204,7 @@ public class PandoraGenerator extends ChunkGenerator
 		int zs = (int) Math.round(((double) z) / scale);
 		double cnoise = noise.getNoise(xs, zs, octaves, frequency, amplitude);
 
-		return ((range * cnoise) + range);
+		return ((range * (cnoise / amplitude)) + range);
 	}
 
 	public List<PandoraBiome> getBiomes(World world) {
@@ -237,7 +240,7 @@ public class PandoraGenerator extends ChunkGenerator
 				continue;
 			else if (cGen.minHumidity > humidity)
 				continue;
-			else if(cGen.maxHumidity < humidity)
+			else if (cGen.maxHumidity < humidity)
 				continue;
 			else if (generator == defaultGen) {
 				generator = cGen;
@@ -392,7 +395,7 @@ public class PandoraGenerator extends ChunkGenerator
 	}
 	
 	public void setUseCustomBiomeMetrics(boolean setting) {
-		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 15D);
+		setUseCustomBiomeMetrics(setting, 100D, 1D, 2, 100D, 5D);
 	}
 	
 	public void setUseCustomBiomeMetrics(boolean setting, double range, double scale,
