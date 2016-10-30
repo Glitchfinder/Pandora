@@ -72,6 +72,10 @@ public class Redwood extends PandoraWorldGenerator
 
 				for (int cz = z - radius; cz <= z + radius; cz++)
 				{
+					// Cancel if the block is invalid for some reason
+					if (!isChunkValid(world, cx, cz))
+						return false;
+
 					int zRadius = cz - z;
 
 					Block block = world.getBlockAt(cx, cy, cz);
@@ -114,5 +118,16 @@ public class Redwood extends PandoraWorldGenerator
 		}
 
 		return placeBlocks(start, true);
+	}
+
+	public boolean isChunkValid(World world, int x, int z) {
+		x = x >> 4; // Chunk X
+		z = z >> 4; // Chunk Z
+
+		// If the chunk is not loaded, and does not exist
+		if (!world.isChunkLoaded(x, z) && !world.loadChunk(x, z, false))
+			return false;
+
+		return true;
 	}
 }
