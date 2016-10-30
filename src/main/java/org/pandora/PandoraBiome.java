@@ -25,6 +25,7 @@ package org.pandora;
 //* IMPORTS: BUKKIT
 	import org.bukkit.block.Block;
 	import org.bukkit.generator.ChunkGenerator.BiomeGrid;
+	import org.bukkit.Location;
 	import org.bukkit.Material;
 	import org.bukkit.util.noise.SimplexNoiseGenerator;
 	import org.bukkit.World;
@@ -88,6 +89,60 @@ public abstract class PandoraBiome
 
 	public byte[] generateSections(World world, Random random, int x, int z, BiomeGrid biomes) {
 		return null;
+	}
+
+	public PandoraGenerator getGenerator(World world) {
+		if (!isPandoraWorld(world))
+			return null;
+
+		return ((PandoraGenerator) world.getGenerator());
+	}
+
+	public final byte[] getNearestEdgeColumn(World world, Random rand, int x, int z, int period, int count)
+	{
+		if (!isPandoraWorld(world))
+			return null;
+
+		PandoraGenerator gen = (PandoraGenerator) world.getGenerator();
+
+		Location loc = gen.getNearestEdge(world, x, z, period, count);
+
+		if (loc == null)
+			return null;
+
+		return gen.getColumnAt(world, rand, loc.getBlockX(), loc.getBlockZ());
+	}
+
+	public final byte[] getNearestEdgeColumnSection(World world, Random rand, int x, int z,
+		BiomeGrid biomes, int period, int count)
+	{
+		if (!isPandoraWorld(world))
+			return null;
+
+		PandoraGenerator gen = (PandoraGenerator) world.getGenerator();
+
+		Location loc = gen.getNearestEdge(world, x, z, period, count);
+
+		if (loc == null)
+			return null;
+
+		return gen.getColumnSectionAt(world, rand, loc.getBlockX(), loc.getBlockZ(), biomes);
+	}
+
+	public final short[] getNearestEdgeExtColumnSection(World world, Random rand, int x, int z,
+		BiomeGrid biomes, int period, int count)
+	{
+		if (!isPandoraWorld(world))
+			return null;
+
+		PandoraGenerator gen = (PandoraGenerator) world.getGenerator();
+
+		Location loc = gen.getNearestEdge(world, x, z, period, count);
+
+		if (loc == null)
+			return null;
+
+		return gen.getExtColumnSectionAt(world, rand, loc.getBlockX(), loc.getBlockZ(), biomes);
 	}
 
 	public final int getNoise(World world, int x, int z, double range, double scale,

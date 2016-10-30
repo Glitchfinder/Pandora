@@ -39,7 +39,9 @@ public class PandoraGenerator extends ChunkGenerator
 {
 	private List<PandoraBiome>	generators = new ArrayList<PandoraBiome>();
 	private List<BlockPopulator>	populators = new ArrayList<BlockPopulator>();
+	private List<Location>		columns = new ArrayList<Location>();
 	private Map<World, SimplexNoiseGenerator> noises, flippedNoises;
+	private Map<Location, PandoraBiome> cache = new HashMap<Location, PandoraBiome>();
 	private PandoraBiome defaultGen;
 	private int octaves;
 	private double range, scale, amplitude, frequency;
@@ -211,12 +213,92 @@ public class PandoraGenerator extends ChunkGenerator
 		return generators;
 	}
 
+	public final byte[] getColumnAt(World world, Random rand, int x, int z) {
+		Location loc = new Location(world, x, 0, z);
+
+		if (columns.contains(loc))
+			return null;
+		else
+			columns.add(loc);
+
+		PandoraBiome biome = getGenerator(world, x, z);
+
+		if (biome == null) {
+			columns.remove(loc);
+			return null;
+		}
+
+		byte[] column = biome.generate(world, rand, x, z);
+
+		if (column == null || column.length < 128) {
+			columns.remove(loc);
+			return null;
+		}
+
+		columns.remove(loc);
+		return column;
+	}
+
+	public final byte[] getColumnSectionAt(World world, Random rand, int x, int z, BiomeGrid biomes) {
+		Location loc = new Location(world, x, 0, z);
+
+		//if (columns.contains(loc))
+		//	return null;
+		//else
+		//	columns.add(loc);
+
+		PandoraBiome biome = getGenerator(world, x, z);
+
+		if (biome == null) {
+			//columns.remove(loc);
+			return null;
+		}
+
+		byte[] column = biome.generateSections(world, rand, x, z,
+			biomes);
+
+		if (column == null || column.length < world.getMaxHeight()) {
+			//columns.remove(loc);
+			return null;
+		}
+
+		//columns.remove(loc);
+		return column;
+	}
+
 	public PandoraBiome getDefaultBiome(World world) {
 		return defaultGen;
 	}
 
 	public List<BlockPopulator> getDefaultPopulators(World world) {
 		return populators;
+	}
+
+	public final short[] getExtColumnSectionAt(World world, Random rand, int x, int z, BiomeGrid biomes) {
+		Location loc = new Location(world, x, 0, z);
+
+		if (columns.contains(loc))
+			return null;
+		else
+			columns.add(loc);
+
+		PandoraBiome biome = getGenerator(world, x, z);
+
+		if (biome == null) {
+			columns.remove(loc);
+			return null;
+		}
+
+		short[] column = biome.generateExtSections(world, rand, x, z,
+			biomes);
+
+		if (column == null || column.length < world.getMaxHeight()) {
+			columns.remove(loc);
+			return null;
+		}
+
+		columns.remove(loc);
+		return column;
 	}
 
 	public Location getFixedSpawnLocation(World world, Random rand) {
@@ -226,6 +308,11 @@ public class PandoraGenerator extends ChunkGenerator
 	private PandoraBiome getGenerator(World world, int x, int z) {
 		if (world == null)
 			return defaultGen;
+
+		Location loc = new Location(world, x, 0, z);
+
+		if (cache.containsKey(loc))
+			return cache.get(loc);
 
 		PandoraBiome generator = defaultGen;
 		double temperature = getTemperature(world, x, z);
@@ -258,6 +345,7 @@ public class PandoraGenerator extends ChunkGenerator
 			humidityRange = generator.maxHumidity - generator.minHumidity;
 		}
 
+		cache.put(loc, generator);
 		return generator;
 	}
 
@@ -312,10 +400,11 @@ public class PandoraGenerator extends ChunkGenerator
 		if (cEdge == null)
 			return null;
 		else if (!inner) {
-			int edgeXPos = cEdge.getBlockX();
-			int edgeZPos = cEdge.getBlockZ();
+			int xDiff = Math.abs(x - cEdge.getBlockX());
+			int zDiff = Math.abs(z - cEdge.getBlockZ());
+			int diff = ((xDiff > zDiff) ? xDiff : zDiff);
 
-			return getNearestEdge(world, edgeXPos, edgeZPos, 1, period, true);
+			return getNearestEdge(world, x, z, 1, diff, true);
 		}
 
 		return cEdge;
