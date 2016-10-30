@@ -1,0 +1,19 @@
+= Pandora =
+**[[https://github.com/Glitchfinder/Pandora/releases|Download]] |
+[[https://github.com/Glitchfinder/Pandora|Source]] |
+[[https://github.com/Glitchfinder/Pandora/issues|Issue Tracker]]**
+
+Pandora is a world generation API designed as a Bukkit plugin for Minecraft
+servers. It is in the very early stages of development, and thus all of it is
+subject to change. Anyone using the API at this point is recommended to link to
+a specific known build for any releases you make.
+
+== To Compile ==
+This project is configured for [[https://maven.apache.org/|Maven]]. To compile,
+you must have Maven installed, along with an applicable copy of the Java
+Development Kit (JDK).
+
+Due to the way this plugin is used as a dependency, it should be compiled with
+the "mvn clean package install" command if you plan to compile a plugin that
+uses it. Otherwise, if you just need Pandora, you can simply use "mvn clean
+package".
