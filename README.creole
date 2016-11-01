@@ -17,3 +17,15 @@ Due to the way this plugin is used as a dependency, it should be compiled with
 the "mvn clean package install" command if you plan to compile a plugin that
 uses it. Otherwise, if you just need Pandora, you can simply use "mvn clean
 package".
+
+== Plugins Using Pandora ==
+
+Plugins I've made which use pandora are:
+
+{{http://i.imgur.com/ZjzvaO4t.png}}
+**[[https://github.com/Glitchfinder/GlitteringDepths|Glittering Depths]]:**
+A world generator plugin that generates glacial caves.
+
+{{http://i.imgur.com/Dn7T8LNt.png}}
+**[[https://github.com/Glitchfinder/Fjordlands|Fjordlands]]:**
+A world generator plugin that generates mountainous fjords.
