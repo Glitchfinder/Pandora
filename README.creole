@@ -23,9 +23,11 @@ package".
 Plugins I've made which use pandora are:
 
 {{http://i.imgur.com/ZjzvaO4t.png}}
+
 **[[https://github.com/Glitchfinder/GlitteringDepths|Glittering Depths]]:**
 A world generator plugin that generates glacial caves.
 
 {{http://i.imgur.com/Dn7T8LNt.png}}
+
 **[[https://github.com/Glitchfinder/Fjordlands|Fjordlands]]:**
 A world generator plugin that generates mountainous fjords.
