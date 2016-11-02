@@ -31,3 +31,8 @@ A world generator plugin that generates glacial caves.
 
 **[[https://github.com/Glitchfinder/Fjordlands|Fjordlands]]:**
 A world generator plugin that generates mountainous fjords.
+
+{{http://i.imgur.com/AYJNROQt.png}}
+
+**[[https://github.com/Glitchfinder/GlowingHighlands|Glowing Highlands]]:**
+A world generator plugin that generates a floating, glowing world.
